@@ -464,7 +464,6 @@
       <button class="bt" onclick="abrirSalvos()" title="Pedidos salvos"><i class="fa-solid fa-folder-open"></i><span class="txt">Pedidos</span></button>
       <button class="bt" id="btEquipe" onclick="alternarEquipe()" title="Resumo por fábrica (senha da equipe)"><i class="fa-solid fa-user-lock"></i><span class="txt">Equipe</span></button>
       <button class="bt" id="btPrevia" onclick="alternarPrevia()" title="Ver como o PDF vai ficar"><i class="fa-solid fa-eye"></i><span class="txt">Prévia</span></button>
-      <label class="bt sel" title="Modelo do documento (PDF)"><i class="fa-solid fa-swatchbook"></i><select id="selModelo" onchange="trocarModelo(this.value)"><option value="m1">Corporativo</option><option value="m2">Minimalista</option><option value="m3">Ateliê</option><option value="m4">Executivo</option></select></label>
       <button class="bt" onclick="abrirConfig()" title="Configurações do talão"><i class="fa-solid fa-gear"></i></button>
       <button class="bt zap" onclick="enviarWhatsApp()" title="Enviar resumo para o cliente no WhatsApp"><i class="fa-brands fa-whatsapp"></i><span class="txt">WhatsApp</span></button>
       <button class="bt ouro" onclick="imprimir()" title="Imprimir ou salvar em PDF"><i class="fa-solid fa-file-pdf"></i><span class="txt">PDF / Imprimir</span></button>
@@ -559,7 +558,7 @@
 
   <!-- ================== PRÉVIA DO DOCUMENTO (é isto que vai para o PDF) ================== -->
   <section class="previa oculto" id="previa">
-    <div class="previa-info nao-imprime"><span>Prévia do PDF · modelo <b id="previaModelo">Corporativo</b> · troque o modelo no botão <i class="fa-solid fa-swatchbook"></i> lá em cima</span><span>Para mudar os dados, clique em <b>Editar</b></span></div>
+    <div class="previa-info nao-imprime"><span>Prévia do PDF · modelo <b id="previaModelo">Corporativo</b> · para trocar, use a engrenagem</span><span>Para mudar os dados, clique em <b>Editar</b></span></div>
     <div class="doc m1" id="doc"></div>
   </section>
 
@@ -720,6 +719,7 @@
 
     // ================== ESTADO ==================
     let cfg = Object.assign({}, CONFIG_PADRAO, ler(K_CFG, {}));
+    if (cfg.modeloPadraoV !== 1) { cfg.modelo = 'm1'; cfg.modeloPadraoV = 1; try { localStorage.setItem(K_CFG, JSON.stringify(cfg)); } catch (e) {} }   // 31/10/2026: modelo Corporativo escolhido como padrão
     cfg.empresa = Object.assign({}, CONFIG_PADRAO.empresa, cfg.empresa || {});
     let pedido = null;
     let produtos = [], porCodigo = new Map(), catalogoPronto = false;
@@ -1370,7 +1370,7 @@
       cfg.logoAltura = Math.min(160, Math.max(30, parseInt($('cfgLogoAlt').value, 10) || 70));
       cfg.cor = $('cfgCor').value || CONFIG_PADRAO.cor;
       cfg.fotos = $('cfgFotos').checked; cfg.desconto = $('cfgDesconto').checked;
-      cfg.modelo = $('cfgModelo').value; cfg.semValores = $('cfgSemValores').checked; $('selModelo').value = cfg.modelo;
+      cfg.modelo = $('cfgModelo').value; cfg.semValores = $('cfgSemValores').checked; 
       cfg.proximo = Math.max(1, parseInt($('cfgProximo').value, 10) || 1);
       cfg.pagamentos = valoresLista('cfgPagamentos');
       cfg.unidades = valoresLista('cfgUnidades').map(u => u.toUpperCase());
@@ -1507,7 +1507,6 @@
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') { e.preventDefault(); imprimir(); }
       });
       window.addEventListener('beforeprint', () => { marcarVazios(); renderDoc(); });
-      $('selModelo').value = MODELOS[cfg.modelo] ? cfg.modelo : 'm1';
       renderDoc();
     });
   </script>
