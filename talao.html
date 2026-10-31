@@ -7,7 +7,7 @@
   <title>Talão de Pedido — F O Representação</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,500;1,500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
   <style>
@@ -256,10 +256,160 @@
     .toast i { color: #D4AF37; }
     .toast.show { transform: translate(-50%, 0); opacity: 1; }
 
+
+    /* ================== DOCUMENTO (o que vai para o PDF) — 4 MODELOS ==================
+       O formulário acima é só para editar. O PDF é este documento, montado a partir dos dados. */
+    .previa { padding: 22px 12px 60px; }
+    .previa-info { max-width: 794px; margin: 0 auto 12px; display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 12px; color: var(--suave); flex-wrap: wrap; }
+    .previa-info b { color: var(--tinta); }
+    .doc { width: 794px; min-height: 1123px; margin: 0 auto; background: #fff; color: #1C1917; box-shadow: 0 2px 6px rgba(0,0,0,.06), 0 20px 50px rgba(60,40,10,.12); position: relative; font-size: 11.5px; line-height: 1.45; display: flex; flex-direction: column; }
+    .doc * { box-sizing: border-box; }
+    .doc .num { font-variant-numeric: tabular-nums; }
+    .doc table { width: 100%; border-collapse: collapse; }
+    .doc .d { text-align: right; } .doc .c { text-align: center; }
+    .doc .ft img { width: 34px; height: 34px; object-fit: contain; display: block; margin: 0 auto; }
+    .doc .tot-row td { padding: 4px 0; }
+    .doc .assin { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; margin-top: 30px; }
+    .doc .assin div { border-top: 1px solid #44403C; padding-top: 6px; text-align: center; font-size: 10.5px; color: #57534E; }
+    .doc .grow { flex: 1; }
+    .doc .vazio { color: #A8A29E; }
+    .bt.sel { padding: 0 6px 0 10px; }
+    .bt select { background: transparent; border: 0; color: #fff; font-weight: 700; font-size: 12px; padding: 7px 2px; outline: none; cursor: pointer; }
+    .bt select option { color: #1C1917; }
+    .bt.ativo { background: #fff; color: #1C1917; }
+
+    /* ---------- MODELO 1 · CORPORATIVO (estilo ERP, quadros com rótulo) ---------- */
+    .m1 { padding: 34px 38px 28px; font-family: "Inter", "Plus Jakarta Sans", sans-serif; }
+    .m1 .top { display: grid; grid-template-columns: auto 1fr auto; gap: 18px; align-items: center; padding-bottom: 14px; border-bottom: 3px solid var(--cor); }
+    .m1 .top img { height: 78px; }
+    .m1 .emp b { font-size: 15px; letter-spacing: .02em; display: block; margin-bottom: 2px; }
+    .m1 .emp span { display: block; color: #57534E; font-size: 10.5px; }
+    .m1 .idbox { border: 1.5px solid #1C1917; min-width: 170px; }
+    .m1 .idbox h1 { margin: 0; background: #1C1917; color: #fff; font-size: 12px; letter-spacing: .14em; text-align: center; padding: 6px 10px; }
+    .m1 .idbox div { display: flex; justify-content: space-between; gap: 12px; padding: 4px 10px; border-top: 1px solid #D6D3D1; font-size: 11px; }
+    .m1 .idbox div b { font-size: 12px; }
+    .m1 .bloco { margin-top: 12px; }
+    .m1 .bloco h2 { margin: 0; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; background: #F5F5F4; border: 1px solid #D6D3D1; border-bottom: 0; padding: 5px 8px; color: #44403C; }
+    .m1 .campos { display: grid; grid-template-columns: repeat(6, 1fr); border-left: 1px solid #D6D3D1; border-top: 1px solid #D6D3D1; }
+    .m1 .campos > div { border-right: 1px solid #D6D3D1; border-bottom: 1px solid #D6D3D1; padding: 4px 8px 5px; min-height: 34px; }
+    .m1 .campos label { display: block; font-size: 8.5px; text-transform: uppercase; letter-spacing: .08em; color: #78716C; font-weight: 700; }
+    .m1 .campos span { font-weight: 600; font-size: 11.5px; }
+    .m1 .s2 { grid-column: span 2; } .m1 .s3 { grid-column: span 3; } .m1 .s4 { grid-column: span 4; } .m1 .s6 { grid-column: span 6; }
+    .m1 .itens { margin-top: 14px; }
+    .m1 .itens th { background: #1C1917; color: #fff; font-size: 9.5px; letter-spacing: .08em; text-transform: uppercase; padding: 7px 6px; text-align: left; }
+    .m1 .itens td { border-bottom: 1px solid #E7E5E4; padding: 5px 6px; vertical-align: middle; }
+    .m1 .itens tbody tr:nth-child(even) td { background: #FAFAF9; }
+    .m1 .itens .cod { font-weight: 700; white-space: nowrap; }
+    .m1 .baixo { display: grid; grid-template-columns: 1fr 250px; gap: 18px; margin-top: 14px; align-items: start; }
+    .m1 .obs { border: 1px solid #D6D3D1; padding: 8px 10px; font-size: 10.5px; color: #44403C; }
+    .m1 .obs h3 { margin: 0 0 4px; font-size: 9.5px; letter-spacing: .12em; text-transform: uppercase; color: #1C1917; }
+    .m1 .obs p { margin: 2px 0; }
+    .m1 .tot { border: 1.5px solid #1C1917; }
+    .m1 .tot td { padding: 6px 10px; border-bottom: 1px solid #E7E5E4; }
+    .m1 .tot .final td { background: var(--cor); color: #fff; font-weight: 800; font-size: 14px; border: 0; }
+    .m1 .rod { margin-top: 18px; padding-top: 8px; border-top: 1px solid #D6D3D1; font-size: 9.5px; color: #78716C; display: flex; justify-content: space-between; }
+
+    /* ---------- MODELO 2 · MINIMALISTA (muito espaço, linhas finas) ---------- */
+    .m2 { padding: 52px 56px 34px; font-family: "Inter", "Plus Jakarta Sans", sans-serif; color: #18181B; }
+    .m2 .top { display: flex; justify-content: space-between; align-items: flex-start; }
+    .m2 .top img { height: 70px; }
+    .m2 .tit { text-align: right; }
+    .m2 .tit h1 { margin: 0; font-size: 34px; font-weight: 300; letter-spacing: -.02em; }
+    .m2 .tit div { color: #71717A; font-size: 11px; margin-top: 2px; }
+    .m2 .tit b { color: #18181B; }
+    .m2 .tres { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 28px; margin-top: 40px; }
+    .m2 .tres h2 { margin: 0 0 6px; font-size: 9.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--cor); font-weight: 700; }
+    .m2 .tres p { margin: 1px 0; color: #3F3F46; }
+    .m2 .tres p b { color: #18181B; font-size: 12.5px; }
+    .m2 .itens { margin-top: 38px; }
+    .m2 .itens th { font-size: 9.5px; letter-spacing: .12em; text-transform: uppercase; color: #71717A; font-weight: 600; text-align: left; padding: 0 6px 9px; border-bottom: 1.5px solid #18181B; }
+    .m2 .itens td { padding: 8px 6px; border-bottom: 1px solid #E4E4E7; vertical-align: middle; }
+    .m2 .itens .cod { color: #71717A; font-size: 10.5px; white-space: nowrap; }
+    .m2 .itens .ds { font-weight: 500; }
+    .m2 .baixo { display: grid; grid-template-columns: 1fr 240px; gap: 40px; margin-top: 22px; }
+    .m2 .obs h3 { margin: 0 0 6px; font-size: 9.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--cor); }
+    .m2 .obs p { margin: 2px 0; color: #52525B; font-size: 10.5px; }
+    .m2 .tot td { padding: 5px 0; color: #52525B; }
+    .m2 .tot .final td { padding-top: 12px; border-top: 1.5px solid #18181B; color: #18181B; font-size: 20px; font-weight: 300; }
+    .m2 .tot .final td:last-child { font-weight: 700; }
+    .m2 .rod { margin-top: 22px; padding-top: 14px; border-top: 1px solid #E4E4E7; display: flex; gap: 18px; justify-content: center; font-size: 9.5px; color: #71717A; flex-wrap: wrap; }
+
+    /* ---------- MODELO 3 · ATELIÊ (dourado, serifa, elegante) ---------- */
+    .m3 { padding: 0 0 26px; font-family: "Inter", "Plus Jakarta Sans", sans-serif; background: #fff; }
+    .m3::before { content: ''; display: block; height: 8px; background: linear-gradient(90deg, #7A5A12, #D4AF37 50%, #7A5A12); }
+    .m3 .top { text-align: center; padding: 18px 50px 10px; }
+    .m3 .top img { height: 66px; display: block; margin: 0 auto 8px; }
+    .m3 .top .nm { font-family: "Playfair Display", Georgia, serif; font-size: 22px; letter-spacing: .02em; }
+    .m3 .top .sub { font-size: 9px; letter-spacing: .34em; text-transform: uppercase; color: var(--cor); margin-top: 2px; }
+    .m3 .top .ct { font-size: 10px; color: #78716C; margin-top: 8px; }
+    .m3 .faixa { margin: 6px 50px 0; display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-top: 1px solid #D4C4A0; border-bottom: 1px solid #D4C4A0; }
+    .m3 .faixa h1 { margin: 0; font-family: "Playfair Display", Georgia, serif; font-weight: 500; font-size: 22px; font-style: italic; color: #1C1917; }
+    .m3 .faixa div { display: flex; gap: 22px; font-size: 10.5px; color: #78716C; }
+    .m3 .faixa b { color: #1C1917; font-size: 12px; }
+    .m3 .duas { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 14px 50px 0; }
+    .m3 .card { background: #FBF8F1; border: 1px solid #EFE6D2; border-radius: 10px; padding: 9px 14px; }
+    .m3 .card h2 { margin: 0 0 6px; font-family: "Playfair Display", Georgia, serif; font-weight: 500; font-size: 14px; color: var(--cor-escura); }
+    .m3 .card p { margin: 1px 0; color: #44403C; }
+    .m3 .card p b { color: #1C1917; }
+    .m3 .itens { margin: 14px 50px 0; width: auto; }
+    .m3 .itens th { font-family: "Playfair Display", Georgia, serif; font-weight: 500; font-size: 11.5px; color: var(--cor-escura); text-align: left; padding: 0 6px 8px; border-bottom: 1.5px solid var(--cor); }
+    .m3 .itens td { padding: 4px 6px; border-bottom: 1px solid #F0EADF; vertical-align: middle; }
+    .m3 .itens .ft img { width: 32px; height: 32px; background: #FBF8F1; border-radius: 8px; padding: 2px; }
+    .m3 .itens .cod { color: var(--cor-escura); font-weight: 700; font-size: 10.5px; white-space: nowrap; }
+    .m3 .baixo { display: grid; grid-template-columns: 1fr 250px; gap: 22px; margin: 14px 50px 0; align-items: start; }
+    .m3 .obs h3 { margin: 0 0 4px; font-family: "Playfair Display", Georgia, serif; font-weight: 500; font-size: 13px; color: var(--cor-escura); }
+    .m3 .obs p { margin: 2px 0; color: #57534E; font-size: 10.5px; }
+    .m3 .tot { background: #FBF8F1; border: 1px solid #EFE6D2; border-radius: 10px; overflow: hidden; }
+    .m3 .tot td { padding: 6px 14px; color: #57534E; }
+    .m3 .tot .final td { background: #1C1917; color: #F0D28A; font-family: "Playfair Display", Georgia, serif; font-size: 18px; padding: 10px 14px; }
+    .m3 .assin { margin: 26px 50px 0; }
+    .m3 .rod { margin: 12px 50px 0; text-align: center; font-size: 9.5px; color: #A8A29E; letter-spacing: .04em; }
+
+    /* ---------- MODELO 4 · EXECUTIVO (faixa escura, cartões de resumo) ---------- */
+    .m4 { font-family: "Inter", "Plus Jakarta Sans", sans-serif; padding-bottom: 24px; }
+    .m4 .top { background: #15120E; color: #F5EEE0; padding: 26px 40px 22px; display: grid; grid-template-columns: auto 1fr auto; gap: 22px; align-items: center; }
+    .m4 .top img { height: 84px; }
+    .m4 .emp b { font-size: 15px; display: block; color: #fff; letter-spacing: .02em; }
+    .m4 .emp span { display: block; color: #B9AF9F; font-size: 10.5px; }
+    .m4 .tit { text-align: right; }
+    .m4 .tit small { display: block; font-size: 9.5px; letter-spacing: .24em; text-transform: uppercase; color: #D4AF37; }
+    .m4 .tit h1 { margin: 2px 0 0; font-size: 28px; font-weight: 800; letter-spacing: -.01em; color: #fff; }
+    .m4 .kpis { display: grid; grid-template-columns: repeat(4, 1fr); margin: -1px 40px 0; background: var(--cor); color: #fff; border-radius: 0 0 12px 12px; }
+    .m4 .kpis div { padding: 10px 14px; border-right: 1px solid rgba(255,255,255,.25); }
+    .m4 .kpis div:last-child { border: 0; }
+    .m4 .kpis small { display: block; font-size: 8.5px; letter-spacing: .14em; text-transform: uppercase; opacity: .85; }
+    .m4 .kpis b { font-size: 14px; }
+    .m4 .duas { display: grid; grid-template-columns: 1.3fr 1fr; gap: 14px; margin: 18px 40px 0; }
+    .m4 .card { border: 1px solid #E7E5E4; border-radius: 12px; padding: 12px 14px; }
+    .m4 .card h2 { margin: 0 0 6px; font-size: 9.5px; letter-spacing: .16em; text-transform: uppercase; color: #78716C; }
+    .m4 .card p { margin: 1px 0; color: #44403C; }
+    .m4 .card p b { color: #1C1917; font-size: 12.5px; }
+    .m4 .itens { margin: 18px 40px 0; width: auto; border: 1px solid #E7E5E4; border-radius: 12px; overflow: hidden; border-collapse: separate; border-spacing: 0; }
+    .m4 .itens th { background: #F5F5F4; font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: #57534E; text-align: left; padding: 8px 8px; }
+    .m4 .itens td { padding: 7px 8px; border-top: 1px solid #F0EEEB; vertical-align: middle; }
+    .m4 .itens .cod { font-weight: 700; color: var(--cor-escura); white-space: nowrap; }
+    .m4 .itens .tt { font-weight: 700; }
+    .m4 .baixo { display: grid; grid-template-columns: 1fr 260px; gap: 18px; margin: 16px 40px 0; align-items: start; }
+    .m4 .obs { background: #FAFAF9; border-radius: 12px; padding: 12px 14px; }
+    .m4 .obs h3 { margin: 0 0 4px; font-size: 9.5px; letter-spacing: .16em; text-transform: uppercase; color: #78716C; }
+    .m4 .obs p { margin: 2px 0; color: #57534E; font-size: 10.5px; }
+    .m4 .tot td { padding: 5px 4px; color: #57534E; }
+    .m4 .tot .final td { background: #15120E; color: #fff; font-size: 16px; font-weight: 800; padding: 10px 14px; }
+    .m4 .tot .final td:first-child { border-radius: 10px 0 0 10px; } .m4 .tot .final td:last-child { border-radius: 0 10px 10px 0; color: #F0D28A; }
+    .m4 .assin { margin: 40px 40px 0; }
+    .m4 .rod { margin: 18px 40px 0; display: flex; justify-content: space-between; font-size: 9.5px; color: #A8A29E; border-top: 1px solid #E7E5E4; padding-top: 8px; }
+
     /* ================== IMPRESSÃO / PDF ================== */
     .so-impressao { display: none; }
-    @page { size: A4; margin: 10mm; }
+    @page { size: A4; margin: 10mm 0; }
+    @page :first { margin-top: 0; }
     @media print {
+      /* O PDF é o DOCUMENTO no modelo escolhido; o formulário de edição não sai */
+      .folha, .previa-info { display: none !important; }
+      .previa, .previa.oculto { display: block !important; padding: 0 !important; }
+      .doc { box-shadow: none !important; width: 210mm !important; min-height: 0 !important; margin: 0 !important; zoom: 1 !important; }
+      .doc .itens tr { break-inside: avoid; }
+      .doc .baixo, .doc .assin { break-inside: avoid; }
       body { background: #fff; font-size: 11px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       .barra, .busca, .acoes-itens .bt-claro, .painel-equipe, .modal, .toast, .item .rm, .nao-imprime { display: none !important; }
       .so-impressao { display: block; }
@@ -313,6 +463,8 @@
       <button class="bt" onclick="salvarPedido(true)" title="Salvar este pedido"><i class="fa-solid fa-floppy-disk"></i><span class="txt">Salvar</span></button>
       <button class="bt" onclick="abrirSalvos()" title="Pedidos salvos"><i class="fa-solid fa-folder-open"></i><span class="txt">Pedidos</span></button>
       <button class="bt" id="btEquipe" onclick="alternarEquipe()" title="Resumo por fábrica (senha da equipe)"><i class="fa-solid fa-user-lock"></i><span class="txt">Equipe</span></button>
+      <button class="bt" id="btPrevia" onclick="alternarPrevia()" title="Ver como o PDF vai ficar"><i class="fa-solid fa-eye"></i><span class="txt">Prévia</span></button>
+      <label class="bt sel" title="Modelo do documento (PDF)"><i class="fa-solid fa-swatchbook"></i><select id="selModelo" onchange="trocarModelo(this.value)"><option value="m1">Corporativo</option><option value="m2">Minimalista</option><option value="m3">Ateliê</option><option value="m4">Executivo</option></select></label>
       <button class="bt" onclick="abrirConfig()" title="Configurações do talão"><i class="fa-solid fa-gear"></i></button>
       <button class="bt zap" onclick="enviarWhatsApp()" title="Enviar resumo para o cliente no WhatsApp"><i class="fa-brands fa-whatsapp"></i><span class="txt">WhatsApp</span></button>
       <button class="bt ouro" onclick="imprimir()" title="Imprimir ou salvar em PDF"><i class="fa-solid fa-file-pdf"></i><span class="txt">PDF / Imprimir</span></button>
@@ -405,6 +557,12 @@
     </footer>
   </main>
 
+  <!-- ================== PRÉVIA DO DOCUMENTO (é isto que vai para o PDF) ================== -->
+  <section class="previa oculto" id="previa">
+    <div class="previa-info nao-imprime"><span>Prévia do PDF · modelo <b id="previaModelo">Corporativo</b> · troque o modelo no botão <i class="fa-solid fa-swatchbook"></i> lá em cima</span><span>Para mudar os dados, clique em <b>Editar</b></span></div>
+    <div class="doc m1" id="doc"></div>
+  </section>
+
   <!-- ================== PAINEL DA EQUIPE ================== -->
   <section class="painel-equipe oculto" id="painelEquipe">
     <h2><i class="fa-solid fa-industry"></i> Pedido para as fábricas</h2>
@@ -465,6 +623,12 @@
         <div class="campo c1"><label>&nbsp;</label><button class="bt-sec" onclick="voltarLogoPadrao()">Logo do site</button></div>
       </div>
 
+      <h4>Documento (PDF)</h4>
+      <div class="grade">
+        <div class="campo c3"><label>Modelo do documento</label><select id="cfgModelo"><option value="m1">Corporativo — quadros, estilo sistema (ERP)</option><option value="m2">Minimalista — limpo, muito espaço</option><option value="m3">Ateliê — dourado e elegante</option><option value="m4">Executivo — faixa escura e resumo em destaque</option></select></div>
+      </div>
+      <label class="chk"><input type="checkbox" id="cfgSemValores"> PDF sem valores (só códigos e quantidades, para separação/conferência)</label>
+
       <h4>Opções</h4>
       <label class="chk"><input type="checkbox" id="cfgFotos"> Mostrar fotos dos produtos (na tela e no PDF)</label>
       <label class="chk"><input type="checkbox" id="cfgDesconto"> Mostrar campo de desconto</label>
@@ -499,7 +663,7 @@
     const GOOGLE_SHEETS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRzJ_n9tb1R1v1eBH3i8n_ogSORXAI7qzFeaeJVIUs0_ZQdhFnzyyLvQdaaCqBwia_6bGCXW-5s32aB/pub?output=csv";
     const THUMBS_FOLDER  = "miniaturas/";
     const IMAGES_FOLDER  = "imagens/";
-    const LOGO_PADRAO    = "imagens/logo-fr.jpg";   // logo da F O Representação (o site usa a logo LumiFa)
+    const LOGO_PADRAO    = "imagens/logo-fr.png";   // logo da F O Representação (o site usa a logo LumiFa)
     const CART_KEY       = "lumifa_cart_v1";     // "Meu Orçamento" do site (mesmo aparelho)
     const TEAM_DATA_URL  = "equipe.dat";
     const TEAM_PASS_KEY  = "lumifa_equipe_v1";   // mesma senha salva pelo modo equipe do site
@@ -509,7 +673,7 @@
 
     const CONFIG_PADRAO = {
       empresa: { nome: "F O REPRESENTAÇÃO", cnpj: "55.659.508/0001-98", tel: "(11) 95978-1849", email: "fabianarep.contato@gmail.com", extra: "" },
-      logo: "", logoAltura: 70, cor: "#96701A",
+      logo: "", logoAltura: 70, cor: "#96701A", modelo: "m1", semValores: false,
       fotos: true, desconto: true, proximo: 1,
       pagamentos: ["Boleto 28 dias", "Boleto 30/60/90", "PIX", "Cartão de crédito", "À vista"],
       unidades: ["PC", "UN", "CX", "M", "RL", "KIT"],
@@ -716,6 +880,7 @@
       }
       calcular();
       renderEquipe();
+      if (modoPrevia) renderDoc();
     }
 
     // Edição dentro das linhas (um único "ouvinte" para a lista toda)
@@ -1106,7 +1271,7 @@
     // ================== SAÍDAS ==================
     function imprimir() {
       if (!pedido.itens.length) { toast('Adicione itens antes de gerar o PDF'); return; }
-      salvarPedido(false); marcarVazios();
+      salvarPedido(false); marcarVazios(); renderDoc();
       const antigo = document.title;
       const cli = (pedido.cliente.nome || '').replace(/[\\/:*?"<>|]+/g, '').trim();
       document.title = `${pedido.tipo || 'Pedido'} ${pedido.numero}${cli ? ' - ' + cli : ''}`;   // vira o nome do arquivo PDF
@@ -1173,6 +1338,7 @@
       const e = cfg.empresa;
       $('cfgNome').value = e.nome; $('cfgCnpj').value = e.cnpj; $('cfgTel').value = e.tel; $('cfgEmail').value = e.email; $('cfgExtra').value = e.extra || '';
       $('cfgLogoAlt').value = cfg.logoAltura; $('cfgCor').value = cfg.cor; $('cfgLogo').value = ''; logoNova = null;
+      $('cfgModelo').value = MODELOS[cfg.modelo] ? cfg.modelo : 'm1'; $('cfgSemValores').checked = !!cfg.semValores;
       $('cfgFotos').checked = cfg.fotos; $('cfgDesconto').checked = cfg.desconto; $('cfgProximo').value = cfg.proximo;
       ['cfgPagamentos', 'cfgUnidades', 'cfgNotas'].forEach(id => $(id).innerHTML = '');
       cfg.pagamentos.forEach(v => addLinhaLista('cfgPagamentos', v));
@@ -1204,6 +1370,7 @@
       cfg.logoAltura = Math.min(160, Math.max(30, parseInt($('cfgLogoAlt').value, 10) || 70));
       cfg.cor = $('cfgCor').value || CONFIG_PADRAO.cor;
       cfg.fotos = $('cfgFotos').checked; cfg.desconto = $('cfgDesconto').checked;
+      cfg.modelo = $('cfgModelo').value; cfg.semValores = $('cfgSemValores').checked; $('selModelo').value = cfg.modelo;
       cfg.proximo = Math.max(1, parseInt($('cfgProximo').value, 10) || 1);
       cfg.pagamentos = valoresLista('cfgPagamentos');
       cfg.unidades = valoresLista('cfgUnidades').map(u => u.toUpperCase());
@@ -1215,8 +1382,114 @@
       gravar(K_CFG, cfg);
       // Se o pedido aberto ainda está vazio, já pega o novo número
       if (!pedido.itens.length && !pedido.salvo) { pedido.numero = String(cfg.proximo).padStart(4, '0'); $('numero').value = pedido.numero; }
-      renderEmpresa(); renderItens(); fechar('modalConfig'); toast('Configurações salvas');
+      renderEmpresa(); renderItens(); renderDoc(); fechar('modalConfig'); toast('Configurações salvas');
     }
+
+
+    // ================== DOCUMENTO DO PDF (4 MODELOS) ==================
+    const MODELOS = { m1: 'Corporativo', m2: 'Minimalista', m3: 'Ateliê', m4: 'Executivo' };
+    const LOGOS_MODELO = { m1: 'imagens/logo-fr.png', m2: 'imagens/logo-fr.png', m3: 'imagens/fr-emblema-dourado.png', m4: 'imagens/logo-fr-claro.png' };
+    let modoPrevia = false;
+
+    function somaDias(dataBR, dias) {
+      const m = String(dataBR || '').match(/^(\d{2})\/(\d{2})\/(\d{4})$/); if (!m) return '';
+      const d = new Date(+m[3], +m[2] - 1, +m[1] + dias); return d.toLocaleDateString('pt-BR');
+    }
+    function renderDoc() {
+      const mod = MODELOS[cfg.modelo] ? cfg.modelo : 'm1';
+      const e = cfg.empresa, c = pedido.cliente, semV = !!cfg.semValores, fotos = !!cfg.fotos;
+      const { sub, desc, total } = calcular();
+      const tipo = (pedido.tipo || 'Pedido').trim();
+      const validade = /or[cç]amento/i.test(tipo) ? somaDias(pedido.data, 7) : '';
+      const logo = cfg.logo || LOGOS_MODELO[mod];
+      const pecas = pedido.itens.reduce((s, i) => s + (i.qtd || 0), 0);
+      const v = x => x ? esc(x) : '<span class="vazio">—</span>';
+      const contatoEmp = [e.cnpj ? 'CNPJ ' + e.cnpj : '', e.tel, e.email, e.extra].filter(Boolean).map(esc);
+
+      // Itens
+      const cab = `<tr><th class="c" style="width:26px">#</th>${fotos ? '<th class="c" style="width:52px">Foto</th>' : ''}<th style="width:86px">Código</th><th>Descrição</th><th class="c" style="width:40px">UN</th><th class="d" style="width:52px">Qtd.</th>${semV ? '' : '<th class="d" style="width:86px">Valor unit.</th><th class="d" style="width:92px">Total</th>'}</tr>`;
+      const linhas = pedido.itens.map((it, i) => {
+        const im = it.code && porCodigo.has(it.code) ? imagemDe(it.code, it.img) : (it.img ? { mini: it.img } : null);
+        return `<tr><td class="c num">${i + 1}</td>${fotos ? `<td class="ft">${im ? `<img src="${esc(im.mini)}" onerror="this.style.visibility='hidden'" alt="">` : ''}</td>` : ''}<td class="cod">${esc(it.code || '—')}</td><td class="ds">${esc(it.desc || '')}</td><td class="c">${esc(it.un || '')}</td><td class="d num">${qtdTexto(it.qtd)}</td>${semV ? '' : `<td class="d num">${it.preco ? fmt(it.preco) : 'consultar'}</td><td class="d num tt">${it.preco ? fmt(it.preco * it.qtd) : '—'}</td>`}</tr>`;
+      }).join('') || `<tr><td colspan="8" class="c vazio" style="padding:30px">Nenhum item</td></tr>`;
+      const tabela = `<table class="itens"><thead>${cab}</thead><tbody>${linhas}</tbody></table>`;
+
+      const totais = semV ? `<table class="tot"><tr><td>Itens</td><td class="d num">${pedido.itens.length}</td></tr><tr class="final"><td>Peças</td><td class="d num">${qtdTexto(arred(pecas))}</td></tr></table>`
+        : `<table class="tot"><tr><td>Itens / peças</td><td class="d num">${pedido.itens.length} / ${qtdTexto(arred(pecas))}</td></tr><tr><td>Subtotal</td><td class="d num">${fmt(sub)}</td></tr>${desc > 0 ? `<tr><td>Desconto${pedido.descPct ? ` (${fmtNum(pedido.descPct, 2).replace(/,00$/, '')}%)` : ''}</td><td class="d num">− ${fmt(desc)}</td></tr>` : ''}<tr class="final"><td>Total</td><td class="d num">${fmt(total)}</td></tr></table>`;
+      const obs = (pedido.obs || cfg.notas.length) ? `<div class="obs">${pedido.obs ? `<h3>Observações do pedido</h3><p>${esc(pedido.obs)}</p>` : ''}${cfg.notas.length ? `<h3 style="margin-top:${pedido.obs ? 8 : 0}px">Condições gerais</h3>${cfg.notas.map(n => `<p>• ${esc(n)}</p>`).join('')}` : ''}</div>` : '<div></div>';
+      const assin = `<div class="assin"><div>Cliente — assinatura e data</div><div>${esc(e.nome)}</div></div>`;
+      const end = [c.endereco, c.cidade].filter(Boolean).join(' — ');
+      let h = '';
+
+      if (mod === 'm1') {
+        h = `<div class="top"><img src="${esc(logo)}" alt="" onerror="this.remove()"><div class="emp"><b>${esc(e.nome)}</b>${contatoEmp.map(x => `<span>${x}</span>`).join('')}</div>
+          <div class="idbox"><h1>${esc(tipo.toUpperCase())}</h1><div><span>Número</span><b>${esc(pedido.numero)}</b></div><div><span>Data</span><b>${esc(pedido.data)}</b></div>${validade ? `<div><span>Validade</span><b>${validade}</b></div>` : ''}</div></div>
+          <div class="bloco"><h2>Dados do cliente</h2><div class="campos">
+            <div class="s4"><label>Nome / Razão social</label><span>${v(c.nome)}</span></div><div class="s2"><label>CPF / CNPJ</label><span>${v(c.doc)}</span></div>
+            <div class="s2"><label>Contato</label><span>${v(c.contato)}</span></div><div class="s2"><label>Telefone / WhatsApp</label><span>${v(c.cel)}</span></div><div class="s2"><label>Inscrição estadual</label><span>${v(c.ie)}</span></div>
+            <div class="s4"><label>Endereço de entrega</label><span>${v(end)}</span></div><div class="s2"><label>E-mail</label><span>${v(c.email)}</span></div>
+          </div></div>
+          <div class="bloco"><h2>Condições comerciais</h2><div class="campos"><div class="s2"><label>Pagamento</label><span>${v(pedido.pagamento)}</span></div><div class="s2"><label>Prazo de entrega</label><span>${v(pedido.prazo)}</span></div><div class="s2"><label>Frete</label><span>${v(pedido.frete)}</span></div></div></div>
+          ${tabela}<div class="baixo">${obs}${totais}</div><div class="grow"></div>${assin}
+          <div class="rod"><span>${esc(e.nome)} · ${contatoEmp.join(' · ')}</span><span>${esc(tipo)} nº ${esc(pedido.numero)}</span></div>`;
+      }
+      if (mod === 'm2') {
+        h = `<div class="top"><img src="${esc(logo)}" alt="" onerror="this.remove()"><div class="tit"><h1>${esc(tipo)}</h1><div>Nº <b>${esc(pedido.numero)}</b> · ${esc(pedido.data)}${validade ? ` · válido até ${validade}` : ''}</div></div></div>
+          <div class="tres">
+            <div><h2>Cliente</h2><p><b>${v(c.nome)}</b></p>${c.doc ? `<p>${esc(c.doc)}${c.ie ? ' · IE ' + esc(c.ie) : ''}</p>` : ''}${c.contato ? `<p>A/C ${esc(c.contato)}</p>` : ''}${c.cel ? `<p>${esc(c.cel)}</p>` : ''}${c.email ? `<p>${esc(c.email)}</p>` : ''}${end ? `<p>${esc(end)}</p>` : ''}</div>
+            <div><h2>Condições</h2><p>Pagamento: <b>${v(pedido.pagamento)}</b></p><p>Entrega: <b>${v(pedido.prazo)}</b></p><p>Frete: <b>${v(pedido.frete)}</b></p></div>
+            <div><h2>Fornecedor</h2><p><b>${esc(e.nome)}</b></p>${contatoEmp.map(x => `<p>${x}</p>`).join('')}</div>
+          </div>
+          ${tabela}<div class="baixo">${obs}${totais}</div><div class="grow"></div>${assin}
+          <div class="rod">${contatoEmp.map(x => `<span>${x}</span>`).join('')}</div>`;
+      }
+      if (mod === 'm3') {
+        const nomeTopo = cfg.logo ? '' : `<div class="nm">${esc(e.nome)}</div><div class="sub">Iluminação decorativa</div>`;
+        h = `<div class="top"><img src="${esc(logo)}" alt="" onerror="this.remove()">${nomeTopo}<div class="ct">${contatoEmp.join('  ·  ')}</div></div>
+          <div class="faixa"><h1>${esc(tipo)}</h1><div><span>Nº <b>${esc(pedido.numero)}</b></span><span>Data <b>${esc(pedido.data)}</b></span>${validade ? `<span>Validade <b>${validade}</b></span>` : ''}</div></div>
+          <div class="duas">
+            <div class="card"><h2>Cliente</h2><p><b>${v(c.nome)}</b></p>${c.doc ? `<p>CPF/CNPJ ${esc(c.doc)}${c.ie ? ' · IE ' + esc(c.ie) : ''}</p>` : ''}${c.contato || c.cel ? `<p>${esc([c.contato, c.cel].filter(Boolean).join(' · '))}</p>` : ''}${c.email ? `<p>${esc(c.email)}</p>` : ''}${end ? `<p>${esc(end)}</p>` : ''}</div>
+            <div class="card"><h2>Condições comerciais</h2><p>Pagamento: <b>${v(pedido.pagamento)}</b></p><p>Prazo de entrega: <b>${v(pedido.prazo)}</b></p><p>Frete: <b>${v(pedido.frete)}</b></p></div>
+          </div>
+          ${tabela}<div class="baixo">${obs}${totais}</div><div class="grow"></div>${assin}
+          <div class="rod">Obrigada pela preferência · ${esc(e.nome)}</div>`;
+      }
+      if (mod === 'm4') {
+        h = `<div class="top"><img src="${esc(logo)}" alt="" onerror="this.remove()"><div class="emp"><b>${esc(e.nome)}</b>${contatoEmp.map(x => `<span>${x}</span>`).join('')}</div><div class="tit"><small>${esc(tipo)}</small><h1>Nº ${esc(pedido.numero)}</h1></div></div>
+          <div class="kpis"><div><small>Data</small><b>${esc(pedido.data)}</b></div><div><small>${validade ? 'Validade' : 'Pagamento'}</small><b>${validade || esc(pedido.pagamento || '—')}</b></div><div><small>Itens / peças</small><b>${pedido.itens.length} / ${qtdTexto(arred(pecas))}</b></div><div><small>${semV ? 'Entrega' : 'Total'}</small><b>${semV ? esc(pedido.prazo || '—') : fmt(total)}</b></div></div>
+          <div class="duas">
+            <div class="card"><h2>Cliente</h2><p><b>${v(c.nome)}</b></p>${c.doc ? `<p>CPF/CNPJ ${esc(c.doc)}${c.ie ? ' · IE ' + esc(c.ie) : ''}</p>` : ''}${c.contato || c.cel ? `<p>${esc([c.contato, c.cel].filter(Boolean).join(' · '))}</p>` : ''}${c.email ? `<p>${esc(c.email)}</p>` : ''}${end ? `<p>${esc(end)}</p>` : ''}</div>
+            <div class="card"><h2>Condições comerciais</h2><p>Pagamento: <b>${v(pedido.pagamento)}</b></p><p>Prazo de entrega: <b>${v(pedido.prazo)}</b></p><p>Frete: <b>${v(pedido.frete)}</b></p></div>
+          </div>
+          ${tabela}<div class="baixo">${obs}${totais}</div><div class="grow"></div>${assin}
+          <div class="rod"><span>${esc(e.nome)}</span><span>${esc(tipo)} nº ${esc(pedido.numero)} · ${esc(pedido.data)}</span></div>`;
+      }
+      const doc = $('doc');
+      doc.className = 'doc ' + mod;
+      doc.innerHTML = h;
+      $('previaModelo').textContent = MODELOS[mod];
+      ajustarZoomPrevia();
+    }
+    function ajustarZoomPrevia() {
+      const d = $('doc'); if (!d) return;
+      const k = Math.min(1, (window.innerWidth - 24) / 794);
+      d.style.zoom = modoPrevia && k < 1 ? k : '';
+    }
+    function alternarPrevia(forcar) {
+      modoPrevia = forcar === undefined ? !modoPrevia : forcar;
+      $('folha').classList.toggle('oculto', modoPrevia);
+      $('previa').classList.toggle('oculto', !modoPrevia);
+      $('btPrevia').classList.toggle('ativo', modoPrevia);
+      $('btPrevia').querySelector('.txt').textContent = modoPrevia ? 'Editar' : 'Prévia';
+      $('btPrevia').querySelector('i').className = modoPrevia ? 'fa-solid fa-pen' : 'fa-solid fa-eye';
+      if (modoPrevia) { renderDoc(); window.scrollTo({ top: 0 }); }
+    }
+    function trocarModelo(m) {
+      cfg.modelo = m; gravar(K_CFG, cfg); renderDoc();
+      if (!modoPrevia) alternarPrevia(true);
+      toast(`Modelo ${MODELOS[m]} selecionado`);
+    }
+    window.addEventListener('resize', ajustarZoomPrevia);
 
     // ================== INÍCIO ==================
     window.addEventListener('DOMContentLoaded', () => {
@@ -1233,7 +1506,9 @@
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); salvarPedido(true); }
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') { e.preventDefault(); imprimir(); }
       });
-      window.addEventListener('beforeprint', marcarVazios);
+      window.addEventListener('beforeprint', () => { marcarVazios(); renderDoc(); });
+      $('selModelo').value = MODELOS[cfg.modelo] ? cfg.modelo : 'm1';
+      renderDoc();
     });
   </script>
 </body>
