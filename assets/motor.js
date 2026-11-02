@@ -106,7 +106,8 @@
   const S = {
     products: [], items: [], groups: new Map(), byCode: new Map(),
     cat: 'Todos', q: '', sort: 'default', price: null, colors: new Set(), temps: new Set(),
-    list: [], rendered: 0, cart: [], team: null, opts: {}, logo: 'duo'
+    list: [], rendered: 0, cart: [], team: null, opts: {}, logo: 'duo',
+    fotos: {}, gal: [], gi: 0, keepGi: null
   };
 
   // ================== MARCA (logo) ==================
@@ -144,6 +145,8 @@
     const params = new URLSearchParams(location.search);
     const csvUrl = params.get('csv') || CFG.csv;     // ?csv= só para teste local
     const varP = fetch(CFG.root + 'variacoes.json?t=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null);
+    // fotos extras por produto (galeria/): {"PROD-001": ["3","4"]} — gerado automaticamente
+    fetch(CFG.root + 'fotos.json?t=' + Date.now()).then(r => r.ok ? r.json() : {}).then(j => { S.fotos = j || {}; }).catch(() => {});
     Papa.parse(csvUrl + (csvUrl.includes('?') ? '&' : '?') + 't=' + Date.now(), {
       download: true, header: true, skipEmptyLines: true,
       complete: res => {
@@ -373,7 +376,7 @@
     const team = p.team ? `<div class="m-team"><b><i class="fa-solid fa-lock"></i> Só para a equipe</b><span>Parceira: <b>${esc(p.team.partner)}</b></span><span>Código original: <b>${esc(p.team.orig || '—')}</b></span>${p.team.page ? `<span>Página do PDF: <b>${esc(p.team.page)}</b></span>` : ''}${p.team.table ? `<span>Preço de tabela: <b>${esc(p.team.table)}</b></span>` : ''}</div>` : '';
     $('#m-product .m-body').innerHTML = `
       <div class="m-grid">
-        <div class="m-media"><img src="${esc(p.image)}" alt="${esc(p.name)}" onclick="Motor.zoom(this.src)" onerror="this.onerror=null;this.src='${FALLBACK}'"><button type="button" class="m-zoom" onclick="Motor.zoom('${esc(p.image)}')"><i class="fa-solid fa-expand"></i> Ampliar</button></div>
+        ${galleryHtml(p)}
         <div class="m-info">
           <div class="m-meta"><span class="m-code">CÓD. ${esc(p.code)}</span><span class="m-cat">${esc(p.category)}</span></div>
           <h2 class="m-title">${esc(g ? g.name : p.name)}</h2>
@@ -389,15 +392,83 @@
           ${p.desc ? `<h4 class="m-h">Descrição</h4><p class="m-desc">${esc(p.desc)}</p>` : ''}
         </div>
       </div>`;
+    initGallery();
     show('#m-product');
+  }
+
+  // ================== GALERIA DE FOTOS DO PRODUTO ==================
+  const FOTO_TIPO = { '3': 'Ficha técnica', '4': 'Temperaturas de cor' };
+  function galleryOf(p) {
+    const g = [{ src: p.image, mini: thumbOf(p.image), label: 'Foto do produto', main: true }];
+    if (p.image === FALLBACK) return g;
+    (S.fotos[String(p.code).toUpperCase()] || []).forEach(n => {
+      const f = String(p.code).toUpperCase() + '-' + n + '.webp';
+      g.push({ src: CFG.root + 'galeria/' + f, mini: CFG.root + 'galeria/mini/' + f, label: FOTO_TIPO[n] || 'Foto ' + n });
+    });
+    return g;
+  }
+  function galleryHtml(p) {
+    S.gal = galleryOf(p);
+    const many = S.gal.length > 1;
+    const slides = S.gal.map((f, i) => `<figure class="g-slide${f.main ? ' is-main' : ''}"><img src="${esc(f.src)}" alt="${esc(p.name + (f.main ? '' : ' — ' + f.label))}" ${i ? 'decoding="async"' : ''} onclick="Motor.zoom(${i})" onerror="${f.main ? `this.onerror=null;this.src='${FALLBACK}'` : `Motor.gDrop(${i})`}"></figure>`).join('');
+    const thumbs = many ? `<div class="g-thumbs" role="tablist">${S.gal.map((f, i) => `<button type="button" class="g-th" role="tab" aria-label="${esc(f.label)}" title="${esc(f.label)}" onclick="Motor.go(${i})"><img src="${esc(f.mini)}" alt="" onerror="if(!this.dataset.fb){this.dataset.fb=1;this.src='${esc(f.src)}'}"></button>`).join('')}</div>` : '';
+    return `<div class="m-media${many ? ' has-gal' : ''}">
+          <div class="g-stage">
+            <div class="g-track" id="g-track">${slides}</div>
+            ${many ? `<button type="button" class="g-nav g-prev" onclick="Motor.go(Motor.state.gi-1)" aria-label="Foto anterior"><i class="fa-solid fa-chevron-left"></i></button><button type="button" class="g-nav g-next" onclick="Motor.go(Motor.state.gi+1)" aria-label="Próxima foto"><i class="fa-solid fa-chevron-right"></i></button><span class="g-count" aria-live="polite"></span>` : ''}
+            <button type="button" class="m-zoom" onclick="Motor.zoom(Motor.state.gi)"><i class="fa-solid fa-expand"></i> Ampliar</button>
+          </div>
+          ${thumbs}
+        </div>`;
+  }
+  function initGallery() {
+    const tr = $('#g-track'); if (!tr) return;
+    const start = S.keepGi != null && S.keepGi < S.gal.length ? S.keepGi : 0;
+    S.keepGi = null; S.gi = -1;
+    let t;
+    tr.addEventListener('scroll', () => { clearTimeout(t); t = setTimeout(() => setGi(Math.round(tr.scrollLeft / Math.max(1, tr.clientWidth))), 60); }, { passive: true });
+    go(start, true);
+  }
+  function setGi(i) {
+    i = Math.max(0, Math.min(S.gal.length - 1, i));
+    S.gi = i;
+    $$('#m-product .g-th').forEach((b, k) => { b.classList.toggle('is-on', k === i); b.setAttribute('aria-selected', k === i); });
+    const c = $('#m-product .g-count'); if (c) c.textContent = `${i + 1} / ${S.gal.length} · ${S.gal[i].label}`;
+    const pv = $('#m-product .g-prev'), nx = $('#m-product .g-next');
+    if (pv) pv.disabled = i === 0; if (nx) nx.disabled = i === S.gal.length - 1;
+    const th = $$('#m-product .g-th')[i]; if (th && th.parentElement.scrollWidth > th.parentElement.clientWidth) th.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  }
+  function go(i, instant) {
+    const tr = $('#g-track'); if (!tr || !S.gal.length) return;
+    i = Math.max(0, Math.min(S.gal.length - 1, i));
+    tr.scrollTo({ left: i * tr.clientWidth, behavior: instant ? 'auto' : 'smooth' });
+    setGi(i);
+    if ($('#m-zoom').classList.contains('is-open')) zoomShow(i);
+  }
+  // foto extra que não carregou: some da galeria sem deixar buraco
+  function gDrop(i) {
+    const sl = $$('#m-product .g-slide')[i], th = $$('#m-product .g-th')[i];
+    if (sl) sl.hidden = true; if (th) th.hidden = true;
   }
   function pick(gid, color, temp, keep) {
     const g = S.groups.get(gid); if (!g) return;
     const v = g.variants.find(x => x.color === color && x.temp === temp) || (keep === 'color' ? g.variants.find(x => x.color === color) : g.variants.find(x => x.temp === temp));
-    if (v) openProduct(v.code);
+    if (v) { S.keepGi = S.gi; openProduct(v.code); }
   }
   function step(d) { const i = $('#m-qty'); i.value = Math.max(1, (+i.value || 1) + d); }
-  function zoom(src) { $('#m-zoom img').src = src; show('#m-zoom'); }
+  function zoom(x) {
+    if (typeof x === 'number') { zoomShow(x); }
+    else { $('#m-zoom').classList.remove('has-gal'); $('#m-zoom img').src = x; }
+    show('#m-zoom');
+  }
+  function zoomShow(i) {
+    const f = S.gal[i]; if (!f) return;
+    const z = $('#m-zoom');
+    z.classList.toggle('has-gal', S.gal.length > 1);
+    $('img', z).src = f.src; $('img', z).alt = f.label;
+    $('.z-count', z).textContent = `${i + 1} / ${S.gal.length} · ${f.label}`;
+    $('.z-prev', z).disabled = i === 0; $('.z-next', z).disabled = i === S.gal.length - 1;
+  }
   function show(sel) { $(sel).classList.add('is-open'); document.documentElement.style.overflow = 'hidden'; }
   function close(sel) {
     (sel ? [$(sel)] : $$('.m-layer.is-open')).forEach(m => m && m.classList.remove('is-open'));
@@ -529,7 +600,7 @@
   function injectShell() {
     document.body.insertAdjacentHTML('beforeend', `
       <div class="m-layer m-product-layer" id="m-product" onclick="if(event.target===this)Motor.close('#m-product')"><div class="m-panel"><button class="m-x" onclick="Motor.close('#m-product')" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button><div class="m-body"></div></div></div>
-      <div class="m-layer m-zoom-layer" id="m-zoom" onclick="Motor.close('#m-zoom')"><img alt="Imagem ampliada"><button class="m-x" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button></div>
+      <div class="m-layer m-zoom-layer" id="m-zoom" onclick="Motor.close('#m-zoom')"><img alt="Imagem ampliada"><button class="m-x" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button><button type="button" class="z-nav z-prev" onclick="event.stopPropagation();Motor.go(Motor.state.gi-1)" aria-label="Foto anterior"><i class="fa-solid fa-chevron-left"></i></button><button type="button" class="z-nav z-next" onclick="event.stopPropagation();Motor.go(Motor.state.gi+1)" aria-label="Próxima foto"><i class="fa-solid fa-chevron-right"></i></button><span class="z-count"></span></div>
       <div class="m-layer m-cart-layer" id="m-cart" onclick="if(event.target===this)Motor.close('#m-cart')"><aside class="c-panel">
         <header class="c-head"><div><h3>Meu orçamento</h3><small data-cart-lines>0 itens</small></div><div><button class="c-clear" onclick="Motor.clearCart()">Esvaziar</button><button class="m-x static" onclick="Motor.close('#m-cart')" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button></div></header>
         <div class="c-list"></div>
@@ -607,7 +678,19 @@
       else if (el.hasAttribute('data-sort-btn')) { S.sort = el.dataset.sortBtn; render(); }
       else if (el.hasAttribute('data-scroll-top')) window.scrollTo({ top: 0, behavior: 'smooth' });
     });
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeTop(); });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') return closeTop();
+      if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && $('#m-product').classList.contains('is-open') && S.gal.length > 1 && !/INPUT|TEXTAREA|SELECT/.test((e.target.tagName || ''))) {
+        e.preventDefault(); go(S.gi + (e.key === 'ArrowRight' ? 1 : -1));
+      }
+    });
+    // deslizar o dedo na foto ampliada
+    (() => { const z = $('#m-zoom'); let x0 = null;
+      z.addEventListener('touchstart', e => { x0 = e.touches[0].clientX; }, { passive: true });
+      z.addEventListener('touchend', e => { if (x0 == null || !z.classList.contains('has-gal')) return; const dx = e.changedTouches[0].clientX - x0; x0 = null;
+        if (Math.abs(dx) > 50) { z.dataset.swiped = '1'; go(S.gi + (dx < 0 ? 1 : -1)); setTimeout(() => delete z.dataset.swiped, 400); } });
+      z.addEventListener('click', e => { if (z.dataset.swiped) e.stopImmediatePropagation(); }, true);
+    })();
     window.addEventListener('scroll', () => { const b = $('#m-top'); if (b) b.classList.toggle('is-on', window.scrollY > 700); }, { passive: true });
     if ('IntersectionObserver' in window) {
       const sent = $('[data-more]');
@@ -655,7 +738,7 @@
       const go = () => { injectShell(); demoBar(); renderBrand(); bind(); load(); };
       document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', go) : go();
     },
-    open: openProduct, pick, step, zoom, close, add, setQty, clearCart, sendWhatsApp, teamLogout, setCat, reset, render,
+    open: openProduct, pick, step, zoom, go, gDrop, close, add, setQty, clearCart, sendWhatsApp, teamLogout, setCat, reset, render,
     get state() { return S; }, H, CFG, filtered, categories,
     // listas prontas para vitrines/carrosséis
     featured(n) { return S.items.filter(i => i.featured).sort((a, b) => a.rank - b.rank).slice(0, n || 12).map(view); },

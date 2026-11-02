@@ -1,0 +1,34 @@
+# Atualiza "fotos.json" (lista de fotos extras por produto) sempre que
+# fotos forem enviadas ou apagadas na pasta "galeria/". Não precisa fazer nada manual.
+# Padrão dos nomes: galeria/PROD-xxxx-3.webp (ficha técnica), galeria/PROD-xxxx-4.webp (temperaturas)
+# e a miniatura com o mesmo nome em galeria/mini/.
+name: Atualizar galeria
+on:
+  push:
+    branches: [main]
+    paths: ['galeria/**']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: galeria
+  cancel-in-progress: false
+jobs:
+  galeria:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Gerar fotos.json
+        run: python .github/scripts/fotos_json.py galeria fotos.json
+      - name: Salvar no repositório
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add fotos.json
+          if git diff --cached --quiet; then echo "fotos.json já estava atualizado."; exit 0; fi
+          git commit -m "Galeria: fotos.json automático"
+          git pull --rebase origin main
+          git push
