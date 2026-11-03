@@ -18,7 +18,7 @@
     cartKey: "lumifa_cart_v1",   // mesmo orçamento do site principal e do talão
     teamKey: "lumifa_equipe_v1",
     // Editor de anúncios (Google Apps Script da planilha, termina em /exec). Vazio = pergunta na 1ª vez e guarda no aparelho.
-    editorUrl: "",
+    editorUrl: "https://script.google.com/macros/s/AKfycbyHoKmZJMNzCCcT11fPJF_Iz_iqimcSFcrMipGH6ZkfUP-bHT0B-XEGZvnKxSadowlWPw/exec",
     editorKey: "lumifa_editor_url",
     pendKey: "lumifa_pend_v1",   // mudanças feitas neste aparelho enquanto a planilha publicada não atualiza (~5 min)
   };
@@ -626,7 +626,7 @@
   // A planilha publicada demora ~5 min para atualizar: enquanto isso, este aparelho
   // guarda a mudança (CFG.pendKey) e já mostra o resultado.
   function editorUrl(ask) {
-    let u = CFG.editorUrl || store.get(CFG.editorKey, '');
+    let u = store.get(CFG.editorKey, '') || CFG.editorUrl;
     if (!u && ask) u = configEditor();
     return u;
   }
