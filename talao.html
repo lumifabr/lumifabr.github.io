@@ -759,7 +759,7 @@
             for (const k in row) it[k.trim().toLowerCase()] = row[k] ? String(row[k]).trim() : '';
             const code = (it.codigo || it['código'] || '').toUpperCase();
             if (!code) return null;
-            const p = { code, nome: it.nome || code, cat: it.categoria || '', preco: num(it.preco || it['preço']), img: it.imagem || '' };
+            const p = { code, nome: it.nome || code, cat: it.categoria || '', preco: num(it.preco || it['preço']), img: it.imagem || '', arq: /arquiv/i.test(it.status || '') };
             p.busca = norm([p.code, p.nome, p.cat].join(' '));
             return p;
           }).filter(Boolean);
@@ -808,7 +808,7 @@
           const t = equipe && equipe[p.code];
           return `<div class="sug ${i === sugIdx ? 'ativa' : ''}" data-i="${i}">
             <img src="${esc(im.mini)}" data-grande="${esc(im.grande)}" onerror="trocaImg(this)" alt="" loading="lazy">
-            <div class="t"><b>${esc(p.code)}</b>${t ? ` <small style="color:#4f46e5;font-weight:700">· ${esc(t[0])} ${esc(t[1] || '')}</small>` : ''}<div>${esc(p.nome)}</div><small>${esc(p.cat)}</small></div>
+            <div class="t"><b>${esc(p.code)}</b>${t ? ` <small style="color:#4f46e5;font-weight:700">· ${esc(t[0])} ${esc(t[1] || '')}</small>` : ''}<div>${esc(p.nome)}</div><small>${esc(p.cat)}</small>${p.arq ? ' <small style="color:#b45309;font-weight:700">· arquivado (fora do site)</small>' : ''}</div>
             <div class="p">${p.preco > 0 ? fmt(p.preco) : '<small>sob consulta</small>'}</div>
           </div>`;
         }).join('');

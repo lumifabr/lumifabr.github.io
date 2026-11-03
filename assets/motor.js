@@ -17,6 +17,10 @@
     brandSub: "Iluminação Decorativa",
     cartKey: "lumifa_cart_v1",   // mesmo orçamento do site principal e do talão
     teamKey: "lumifa_equipe_v1",
+    // Editor de anúncios (Google Apps Script da planilha, termina em /exec). Vazio = pergunta na 1ª vez e guarda no aparelho.
+    editorUrl: "",
+    editorKey: "lumifa_editor_url",
+    pendKey: "lumifa_pend_v1",   // mudanças feitas neste aparelho enquanto a planilha publicada não atualiza (~5 min)
   };
 
   // Produtos em destaque ("Mais procurado") — mesma lista do site
@@ -107,7 +111,8 @@
     products: [], items: [], groups: new Map(), byCode: new Map(),
     cat: 'Todos', q: '', sort: 'default', price: null, colors: new Set(), temps: new Set(),
     list: [], rendered: 0, cart: [], team: null, opts: {}, logo: 'duo',
-    fotos: {}, gal: [], gi: 0, keepGi: null
+    fotos: {}, gal: [], gi: 0, keepGi: null,
+    archived: [], showArch: false, varData: null
   };
 
   // ================== MARCA (logo) ==================
@@ -153,46 +158,60 @@
         S.products = (res.data || []).map((row, idx) => {
           const it = {};
           for (const k in row) it[k.trim().toLowerCase()] = row[k] ? String(row[k]).trim() : '';
-          const rawSpecs = it.especificacoes || it['especificações'] || '';
-          const rawDesc = it.descricao || it['descrição'] || rawSpecs;
-          const p = {
-            code: it.codigo || it['código'] || `COD-${idx + 1}`,
-            name: it.nome || it.codigo || 'Produto',
-            category: it.categoria || 'Geral',
-            price: parsePrice(it.preco || it['preço']),
-            image: resolveImage(it.imagem)
-          };
-          p.specs = cleanText(rawSpecs, p.name);
-          const tm = rawDesc.match(/\bTags:\s*(.+)$/i);
-          p.tags = tm ? tm[1].split(/\s+-\s+|,/).map(t => t.trim()).filter(Boolean) : [];
-          let desc = cleanText(rawDesc.replace(/\s*\bTags:.*$/i, ''), p.name);
-          if (p.specs && desc.toLowerCase().startsWith(p.specs.toLowerCase())) desc = trimSep(desc.slice(p.specs.length));
-          p.desc = desc;
-          const catKey = norm(p.category);
-          p.haystack = norm([p.code, p.name, rawSpecs, desc, p.tags.filter(t => norm(t) !== catKey).join(' ')].join(' '));
-          p.order = idx;
-          const d = DESTAQUES.indexOf(p.code.toUpperCase());
-          const n = codeNumber(p.code);
-          p.rank = d >= 0 ? d : (PRIORIDADE.some(r => n >= r.de && n <= r.ate) ? 10000 : 99999);
-          p.featured = d >= 0;
-          p.isNew = n >= NOVIDADES.de && n <= NOVIDADES.ate;
-          // facetas para filtros
-          p.fColors = uniq(p.tags.map(t => TAG_COLOR[norm(t)] || TAG_COLOR[t.toLowerCase()]).filter(Boolean));
-          p.fTemps = uniq((rawSpecs.match(/\b(\d{4})\s?K\b/gi) || []).map(x => x.replace(/\s/g, '').toUpperCase()));
-          S.byCode.set(p.code, p);
-          return p;
+          return makeProduct(it, idx);
         });
+        S.products.forEach(p => S.byCode.set(p.code, p));
+        applyPending();
         if (!S.products.length) return fail('Catálogo vazio', 'Não encontramos produtos na planilha.');
-        varP.then(v => { buildItems(v); loadCart(); ready(); });
+        varP.then(v => { S.varData = v; buildItems(v); loadCart(); ready(); });
       },
       error: () => fail('Não foi possível carregar o catálogo', 'Verifique sua conexão e tente novamente.')
     });
   }
 
+  // monta um produto a partir de uma linha da planilha (chaves em minúsculas)
+  function makeProduct(it, idx) {
+    const rawSpecs = it.especificacoes || it['especificações'] || '';
+    const rawDescOnly = it.descricao || it['descrição'] || '';
+    const rawDesc = rawDescOnly || rawSpecs;
+    const p = {
+      code: it.codigo || it['código'] || `COD-${idx + 1}`,
+      name: it.nome || it.codigo || 'Produto',
+      category: it.categoria || 'Geral',
+      price: parsePrice(it.preco || it['preço']),
+      image: resolveImage(it.imagem)
+    };
+    // valores originais da planilha (usados pelo editor da equipe)
+    p.raw = { nome: it.nome || '', categoria: it.categoria || '', preco: it.preco || it['preço'] || '', especificacoes: rawSpecs, descricao: rawDescOnly, status: it.status || '', imagem: it.imagem || '' };
+    p.archived = /arquiv/i.test(it.status || '');
+    p.specs = cleanText(rawSpecs, p.name);
+    const tm = rawDesc.match(/\bTags:\s*(.+)$/i);
+    p.tags = tm ? tm[1].split(/\s+-\s+|,/).map(t => t.trim()).filter(Boolean) : [];
+    let desc = cleanText(rawDesc.replace(/\s*\bTags:.*$/i, ''), p.name);
+    if (p.specs && desc.toLowerCase().startsWith(p.specs.toLowerCase())) desc = trimSep(desc.slice(p.specs.length));
+    p.desc = desc;
+    const catKey = norm(p.category);
+    p.haystack = norm([p.code, p.name, rawSpecs, desc, p.tags.filter(t => norm(t) !== catKey).join(' ')].join(' '));
+    p.order = idx;
+    const d = DESTAQUES.indexOf(p.code.toUpperCase());
+    const n = codeNumber(p.code);
+    p.rank = d >= 0 ? d : (PRIORIDADE.some(r => n >= r.de && n <= r.ate) ? 10000 : 99999);
+    p.featured = d >= 0;
+    p.isNew = n >= NOVIDADES.de && n <= NOVIDADES.ate;
+    // facetas para filtros
+    p.fColors = uniq(p.tags.map(t => TAG_COLOR[norm(t)] || TAG_COLOR[t.toLowerCase()]).filter(Boolean));
+    p.fTemps = uniq((rawSpecs.match(/\b(\d{4})\s?K\b/gi) || []).map(x => x.replace(/\s/g, '').toUpperCase()));
+    return p;
+  }
+
   function buildItems(v) {
     S.groups = new Map();
     const byG = new Map();
-    if (v && v.itens) S.products.forEach(p => {
+    S.products.forEach(p => { p.group = null; p.color = ''; p.temp = ''; });
+    // arquivados ficam fora da vitrine (e fora dos grupos de cor/temperatura)
+    S.archived = S.products.filter(p => p.archived);
+    const active = S.products.filter(p => !p.archived);
+    if (v && v.itens) active.forEach(p => {
       const info = v.itens[p.code]; if (!info) return;
       p.group = info[0]; p.color = info[1] || ''; p.temp = info[2] || '';
       if (!byG.has(p.group)) byG.set(p.group, []);
@@ -219,7 +238,7 @@
       });
     });
     S.items = []; const seen = new Set();
-    S.products.forEach(p => {
+    active.forEach(p => {
       if (!p.group) { S.items.push(p); return; }
       if (seen.has(p.group)) return;
       seen.add(p.group); S.items.push(S.groups.get(p.group));
@@ -237,7 +256,7 @@
     opts = opts || {};
     const terms = norm(S.q).split(/\s+/).filter(Boolean);
     const pr = S.price ? PRICE_RANGES.find(r => r.id === S.price) : null;
-    let l = S.items.filter(it => {
+    let l = (S.showArch && S.team ? S.archived : S.items).filter(it => {
       if (!opts.ignoreCat && S.cat !== 'Todos' && it.category !== S.cat) return false;
       if (pr && !(it.price >= pr.min && it.price < pr.max && it.price > 0)) return false;
       if (S.colors.size && !it.fColors.some(c => S.colors.has(c))) return false;
@@ -266,7 +285,10 @@
     const grid = $(S.opts.grid || '[data-grid]');
     if (!grid) return;
     grid.innerHTML = '';
-    $$('[data-count]').forEach(el => el.textContent = `${S.list.length.toLocaleString('pt-BR')} ${S.list.length === 1 ? 'produto' : 'produtos'}` + (S.cat !== 'Todos' ? ` em ${S.cat}` : ''));
+    const arq = S.showArch && S.team;
+    $$('[data-count]').forEach(el => el.textContent = `${S.list.length.toLocaleString('pt-BR')} ${arq ? (S.list.length === 1 ? 'produto arquivado' : 'produtos arquivados') : (S.list.length === 1 ? 'produto' : 'produtos')}` + (S.cat !== 'Todos' ? ` em ${S.cat}` : ''));
+    document.body.classList.toggle('is-arch-view', !!arq);
+    $$('[data-arch-n]').forEach(el => el.textContent = S.archived.length);
     $$('[data-cat-title]').forEach(el => el.textContent = S.cat === 'Todos' ? (el.dataset.catTitle || 'Todos os produtos') : S.cat);
     const empty = $('[data-empty]');
     if (empty) empty.hidden = S.list.length > 0;
@@ -357,7 +379,17 @@
       const s = (it.specs || '').split('|').map(x => x.trim()).filter(x => x && !/^[A-Z0-9\s,.\-()*/+°ÅÂÉÍÓÚÃÕÇ]+$/.test(x));
       return s.slice(0, n || 3);
     },
-    team(it) { const p = it.isGroup ? (S.byCode.get(it.code)) : it; return p && p.team ? `<span class="team-tag"><i class="fa-solid fa-lock"></i>${esc(p.team.partner)} · ${esc(p.team.orig || '—')}</span>` : ''; },
+    team(it) {
+      if (!S.team) return '';
+      const p = it.isGroup ? (S.byCode.get(it.code)) : it;
+      const tag = p && p.team ? `<span class="team-tag"><i class="fa-solid fa-lock"></i>${esc(p.team.partner)} · ${esc(p.team.orig || '—')}</span>` : '';
+      const codes = it.isGroup ? it.variants.map(v => v.code) : [it.code];
+      const arch = !it.isGroup && it.archived;
+      return `${tag}<span class="team-acts">${arch ? '<span class="arch-flag"><i class="fa-solid fa-box-archive"></i> Arquivado</span>' : ''}
+        <button type="button" class="ta-btn" data-ed-edit="${esc(p ? p.code : it.code)}" title="Editar anúncio"><i class="fa-solid fa-pen"></i> Editar</button>
+        ${arch ? `<button type="button" class="ta-btn ta-on" data-ed-unarch="${esc(codes.join(','))}" title="Voltar a mostrar para os clientes"><i class="fa-solid fa-box-open"></i> Desarquivar</button>`
+               : `<button type="button" class="ta-btn" data-ed-arch="${esc(codes.join(','))}" title="Esconder dos clientes"><i class="fa-solid fa-box-archive"></i> Arquivar${it.isGroup ? ` (${codes.length})` : ''}</button>`}</span>`;
+    },
     qtyInCart(code) { const c = S.cart.find(i => i.code === code); return c ? c.qty : 0; }
   };
 
@@ -373,7 +405,13 @@
       if (g.colors.length) picker += `<div class="pick"><span class="pick-t">Cor: <b>${esc(p.color)}</b></span><div class="pick-o">${g.colors.map(c => `<button type="button" class="opt ${c === p.color ? 'is-on' : ''}" onclick="Motor.pick(${q(g.id)},${q(c)},${q(p.temp)},'color')">${swatch(c, 16)}${esc(c)}</button>`).join('')}</div></div>`;
       if (g.temps.length) picker += `<div class="pick"><span class="pick-t">Temperatura da luz: <b>${esc(p.temp)}</b></span><div class="pick-o">${g.temps.map(t => `<button type="button" class="opt ${t === p.temp ? 'is-on' : ''}" onclick="Motor.pick(${q(g.id)},${q(p.color)},${q(t)},'temp')"><i class="fa-regular fa-sun"></i>${esc(t)}</button>`).join('')}</div></div>`;
     }
-    const team = p.team ? `<div class="m-team"><b><i class="fa-solid fa-lock"></i> Só para a equipe</b><span>Parceira: <b>${esc(p.team.partner)}</b></span><span>Código original: <b>${esc(p.team.orig || '—')}</b></span>${p.team.page ? `<span>Página do PDF: <b>${esc(p.team.page)}</b></span>` : ''}${p.team.table ? `<span>Preço de tabela: <b>${esc(p.team.table)}</b></span>` : ''}</div>` : '';
+    const team = S.team ? `<div class="m-team"><b><i class="fa-solid fa-lock"></i> Só para a equipe${p.archived ? ' · <span class="arch-flag"><i class="fa-solid fa-box-archive"></i> Arquivado — clientes não veem</span>' : ''}</b>${p.team ? `<span>Parceira: <b>${esc(p.team.partner)}</b></span><span>Código original: <b>${esc(p.team.orig || '—')}</b></span>${p.team.page ? `<span>Página do PDF: <b>${esc(p.team.page)}</b></span>` : ''}${p.team.table ? `<span>Preço de tabela: <b>${esc(p.team.table)}</b></span>` : ''}` : ''}
+      <div class="m-team-acts">
+        <button type="button" class="ta-btn" data-ed-edit="${esc(p.code)}"><i class="fa-solid fa-pen"></i> Editar anúncio</button>
+        ${p.archived ? `<button type="button" class="ta-btn ta-on" data-ed-unarch="${esc(p.code)}"><i class="fa-solid fa-box-open"></i> Desarquivar</button>`
+          : g ? `<button type="button" class="ta-btn" data-ed-arch="${esc(p.code)}"><i class="fa-solid fa-box-archive"></i> Arquivar só esta opção</button><button type="button" class="ta-btn" data-ed-arch="${esc(g.variants.map(v => v.code).join(','))}"><i class="fa-solid fa-box-archive"></i> Arquivar anúncio inteiro (${g.variants.length})</button>`
+          : `<button type="button" class="ta-btn" data-ed-arch="${esc(p.code)}"><i class="fa-solid fa-box-archive"></i> Arquivar</button>`}
+      </div></div>` : '';
     $('#m-product .m-body').innerHTML = `
       <div class="m-grid">
         ${galleryHtml(p)}
@@ -479,7 +517,7 @@
   // ================== ORÇAMENTO ==================
   function loadCart() {
     let raw = []; try { raw = JSON.parse(store.get(CFG.cartKey, '[]')); } catch (e) {}
-    S.cart = (raw || []).filter(i => S.byCode.has(i.code)).map(i => ({ code: i.code, qty: Number(i.qty) || 1 }));
+    S.cart = (raw || []).filter(i => S.byCode.has(i.code) && !S.byCode.get(i.code).archived).map(i => ({ code: i.code, qty: Number(i.qty) || 1 }));
     updateCart();
   }
   function saveCart() { store.set(CFG.cartKey, JSON.stringify(S.cart)); }
@@ -581,14 +619,170 @@
     };
     ask(); window.addEventListener('hashchange', ask);
   }
-  function teamLogout() { S.team = null; store.del(CFG.teamKey); S.products.forEach(p => { p.team = null; p.teamHay = ''; }); document.body.classList.remove('is-team'); render(); toast('Modo equipe desativado'); }
+  function teamLogout() { S.team = null; S.showArch = false; store.del(CFG.teamKey); S.products.forEach(p => { p.team = null; p.teamHay = ''; }); document.body.classList.remove('is-team'); render(); toast('Modo equipe desativado'); }
+
+  // ================== EDITOR DE ANÚNCIOS (modo equipe) ==================
+  // Grava na planilha pelo Apps Script (.github/scripts/editor/Editor.gs).
+  // A planilha publicada demora ~5 min para atualizar: enquanto isso, este aparelho
+  // guarda a mudança (CFG.pendKey) e já mostra o resultado.
+  function editorUrl(ask) {
+    let u = CFG.editorUrl || store.get(CFG.editorKey, '');
+    if (!u && ask) u = configEditor();
+    return u;
+  }
+  function configEditor() {
+    const cur = CFG.editorUrl || store.get(CFG.editorKey, '');
+    const u = (prompt('Cole o link do Editor de anúncios (Apps Script da planilha, termina em /exec):', cur) || '').trim();
+    if (!u) return '';
+    if (!/^https:\/\/script\.google(usercontent)?\.com\/.+\/exec$/i.test(u)) { toast('Link inválido: precisa terminar em /exec'); return ''; }
+    store.set(CFG.editorKey, u); toast('Editor conectado');
+    return u;
+  }
+  async function api(acao, codigos, dados) {
+    const url = editorUrl(true);
+    if (!url) throw new Error('editor não configurado');
+    let j;
+    try {
+      const res = await fetch(url, { method: 'POST', body: JSON.stringify({ senha: store.get(CFG.teamKey, ''), acao, codigos, dados }) });
+      j = await res.json();
+    } catch (e) { throw new Error('sem resposta do editor (verifique a internet ou o link)'); }
+    if (!j || !j.ok) throw new Error((j && j.erro) || 'erro desconhecido');
+    return j;
+  }
+  function pendAll() { try { return JSON.parse(store.get(CFG.pendKey, '{}')) || {}; } catch (e) { return {}; } }
+  function savePend(code, changes) {
+    const all = pendAll();
+    all[code] = { ts: Date.now(), raw: Object.assign((all[code] && all[code].raw) || {}, changes) };
+    store.set(CFG.pendKey, JSON.stringify(all));
+  }
+  // troca o produto pela versão com as mudanças (mesma posição, mesmo dado da equipe)
+  function patchProduct(code, changes) {
+    const old = S.byCode.get(code); if (!old) return;
+    const raw = Object.assign({}, old.raw, changes);
+    const np = makeProduct(Object.assign({ codigo: code }, raw), old.order);
+    np.team = old.team; np.teamHay = old.teamHay;
+    const i = S.products.indexOf(old); if (i >= 0) S.products[i] = np;
+    S.byCode.set(code, np);
+  }
+  function applyPending() {
+    const all = pendAll(), keep = {};
+    Object.keys(all).forEach(code => {
+      const e = all[code], p = S.byCode.get(code);
+      if (!p || !e || Date.now() - e.ts > 30 * 60 * 1000) return;           // velho demais: a planilha já manda
+      const done = Object.keys(e.raw).every(k => k === 'status'
+        ? /arquiv/i.test(p.raw.status || '') === /arquiv/i.test(e.raw.status || '')
+        : String(p.raw[k] || '').trim() === String(e.raw[k] || '').trim());
+      if (done) return;                                                       // planilha publicada já atualizou
+      keep[code] = e; patchProduct(code, e.raw);
+    });
+    store.set(CFG.pendKey, JSON.stringify(keep));
+  }
+  function rebuild() {
+    buildItems(S.varData);
+    if (S.showArch && !S.archived.length) S.showArch = false;   // não sobrou nenhum arquivado: volta ao catálogo
+    S.groups.forEach(g => g.teamHay = g.variants.map(v => v.teamHay || '').join(' '));
+    render();
+    if (S.opts.onReady && S.opts.rerunOnEdit !== false) { try { S.opts.onReady(API); } catch (e) {} }
+  }
+  function busy(on, txt) { document.body.classList.toggle('ed-busy', on); if (on) toast(txt || 'Salvando…'); }
+
+  async function setArchived(codes, on) {
+    if (!S.team || !codes.length) return;
+    const ps = codes.map(c => S.byCode.get(c)).filter(Boolean);
+    const first = ps[0]; if (!first) return;
+    const g = first.group ? S.groups.get(first.group) : null;
+    const nome = g && ps.length > 1 ? g.name : fullName(first);
+    const msg = on
+      ? `Arquivar ${ps.length > 1 ? `o anúncio "${nome}" (${ps.length} opções)` : `${first.code} — ${nome}`}?\n\nO produto some do site para os clientes (em até 5 minutos) e fica guardado em "Arquivados". Dá para desarquivar quando quiser.`
+      : `Desarquivar ${ps.length > 1 ? ps.length + ' produtos' : first.code + ' — ' + nome}?\n\nEle volta a aparecer para os clientes em até 5 minutos.`;
+    if (!confirm(msg)) return;
+    busy(true, on ? 'Arquivando…' : 'Desarquivando…');
+    try {
+      const r = await api(on ? 'arquivar' : 'desarquivar', codes);
+      (r.feitos || codes).forEach(c => { const ch = { status: on ? 'Arquivado' : 'Ativo' }; savePend(c, ch); patchProduct(c, ch); });
+      close('#m-product');
+      rebuild();
+      toast(on ? `Arquivado (${(r.feitos || codes).length}). Clientes deixam de ver em até 5 min.` : `Desarquivado. Volta ao site em até 5 min.`);
+      if (r.faltando && r.faltando.length) setTimeout(() => toast('Não achei na planilha: ' + r.faltando.join(', ')), 2000);
+    } catch (e) { toast('Não foi possível: ' + e.message); }
+    finally { document.body.classList.remove('ed-busy'); }
+  }
+  function toggleArchView(force) {
+    if (!S.team) return;
+    S.showArch = force === undefined ? !S.showArch : !!force;
+    render();
+    const anchor = $(S.opts.scrollAnchor || '[data-results]');
+    if (anchor) window.scrollTo({ top: anchor.getBoundingClientRect().top + window.scrollY - (S.opts.headerOffset ? S.opts.headerOffset() : 90), behavior: 'smooth' });
+    toast(S.showArch ? `Mostrando os arquivados (${S.archived.length})` : 'De volta ao catálogo');
+  }
+
+  // ---- formulário de edição ----
+  const splitTags = d => { const m = String(d || '').match(/^([\s\S]*?)\s*\bTags:\s*([\s\S]*)$/i); return m ? [m[1].trim(), m[2].trim()] : [String(d || '').trim(), '']; };
+  const priceTxt = v => { const n = parsePrice(v); return n > 0 ? n.toFixed(2).replace('.', ',') : String(v || '').trim(); };
+  function openEditor(code) {
+    const p = S.byCode.get(code); if (!p || !S.team) return;
+    const g = p.group ? S.groups.get(p.group) : null;
+    const [desc, tags] = splitTags(p.raw.descricao);
+    const cats = uniq([...Object.keys(CAT_ICON), ...S.products.map(x => x.category)]).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+    const others = g ? g.variants.filter(v => v.code !== p.code) : [];
+    $('#m-edit .e-body').innerHTML = `
+      <div class="e-head"><img src="${esc(thumbOf(p.image))}" alt="" onerror="__imgFb(this,'${esc(p.image)}')"><div><small>Editar anúncio · ${esc(p.code)}${p.archived ? ' · arquivado' : ''}</small><b>${esc(p.name)}</b>${p.team ? `<span>${esc(p.team.partner)} · ${esc(p.team.orig || '—')}${p.team.table ? ' · tabela ' + esc(p.team.table) : ''}</span>` : ''}</div></div>
+      <form id="e-form" data-code="${esc(p.code)}" onsubmit="event.preventDefault();Motor.saveEdit()">
+        <label>Nome<input name="nome" value="${esc(p.raw.nome)}" required></label>
+        <div class="e-row">
+          <label>Categoria<input name="categoria" list="e-cats" value="${esc(p.raw.categoria)}" required><datalist id="e-cats">${cats.map(c => `<option value="${esc(c)}">`).join('')}</datalist></label>
+          <label>Preço (R$)<input name="preco" value="${esc(p.raw.preco)}" inputmode="decimal" placeholder="Ex.: 189,90 (vazio = sob consulta)"></label>
+        </div>
+        <label>Especificações <small>separe por | — ex.: Potência: 13W | Tensão: Bivolt</small><textarea name="especificacoes" rows="3">${esc(p.raw.especificacoes)}</textarea></label>
+        <label>Descrição<textarea name="descricao" rows="5">${esc(desc)}</textarea></label>
+        <label>Tags de busca <small>separe por " - "</small><input name="tags" value="${esc(tags)}"></label>
+        ${others.length ? `<label class="e-chk"><input type="checkbox" name="todas"> Aplicar categoria e preço também às outras ${others.length} opções deste anúncio <small>(${esc(others.map(o => [o.color, o.temp].filter(Boolean).join(' ') || o.code).join(', '))})</small></label>` : ''}
+        <p class="e-note"><i class="fa-solid fa-circle-info"></i> Salva direto na planilha (aba Página1). O valor antigo fica guardado na aba Histórico_Editor. Os clientes veem a mudança em até 5 minutos.</p>
+        <div class="e-btns"><button type="button" class="btn-ghost" onclick="Motor.close('#m-edit')">Cancelar</button><button type="submit" class="btn-primary"><i class="fa-solid fa-floppy-disk"></i> Salvar</button></div>
+      </form>`;
+    show('#m-edit');
+    setTimeout(() => { const i = $('#e-form [name=nome]'); if (i) i.focus(); }, 60);
+  }
+  async function saveEdit() {
+    const f = $('#e-form'); if (!f) return;
+    const code = f.dataset.code, p = S.byCode.get(code); if (!p) return;
+    const v = n => (f.elements[n] ? f.elements[n].value : '').replace(/\s+\n/g, '\n').trim();
+    const tags = v('tags'), desc = v('descricao');
+    const novo = {
+      nome: v('nome'), categoria: v('categoria'), preco: priceTxt(v('preco')),
+      especificacoes: v('especificacoes'),
+      descricao: (desc + (tags ? (desc ? ' ' : '') + 'Tags: ' + tags : '')).trim()
+    };
+    const dados = {};
+    Object.keys(novo).forEach(k => { if (novo[k] !== String(p.raw[k] || '').trim()) dados[k] = novo[k]; });
+    const todas = f.elements.todas && f.elements.todas.checked;
+    const g = p.group ? S.groups.get(p.group) : null;
+    const others = todas && g ? g.variants.filter(x => x.code !== code) : [];
+    const shared = {}; ['categoria', 'preco'].forEach(k => { if (others.some(o => String(o.raw[k] || '').trim() !== novo[k])) shared[k] = novo[k]; });
+    if (!Object.keys(dados).length && !Object.keys(shared).length) { toast('Nada foi alterado'); return; }
+    if (!novo.nome) { toast('O nome não pode ficar vazio'); return; }
+    busy(true);
+    try {
+      if (Object.keys(dados).length) { await api('editar', [code], dados); savePend(code, dados); patchProduct(code, dados); }
+      if (others.length && Object.keys(shared).length) {
+        const oc = others.map(o => o.code);
+        await api('editar', oc, shared);
+        oc.forEach(c => { savePend(c, shared); patchProduct(c, shared); });
+      }
+      close('#m-edit');
+      rebuild();
+      if ($('#m-product').classList.contains('is-open')) openProduct(code);
+      toast('Anúncio salvo. Clientes veem em até 5 min.');
+    } catch (e) { toast('Não foi possível salvar: ' + e.message); }
+    finally { document.body.classList.remove('ed-busy'); }
+  }
 
   // ================== AVISOS ==================
   function toast(t) {
     let el = $('#m-toast');
     el.querySelector('span').textContent = t;
     el.classList.add('is-on'); clearTimeout(toast._t);
-    toast._t = setTimeout(() => el.classList.remove('is-on'), 1900);
+    toast._t = setTimeout(() => el.classList.remove('is-on'), t.length > 40 ? 3600 : 1900);
   }
   function fail(t, s) {
     const g = $(S.opts.grid || '[data-grid]');
@@ -614,7 +808,8 @@
         </footer></aside></div>
       <button id="m-top" data-scroll-top aria-label="Voltar ao topo" title="Voltar ao topo"><i class="fa-solid fa-arrow-up"></i></button>
       <div id="m-toast"><i class="fa-solid fa-circle-check"></i><span></span></div>
-      <div class="team-pill"><i class="fa-solid fa-user-lock"></i> Modo equipe <a href="${CFG.root}talao.html">Talão</a><button onclick="Motor.teamLogout()">Sair</button></div>`);
+      <div class="m-layer m-edit-layer" id="m-edit" onclick="if(event.target===this)Motor.close('#m-edit')"><div class="e-panel"><button class="m-x" onclick="Motor.close('#m-edit')" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button><div class="e-body"></div></div></div>
+      <div class="team-pill"><i class="fa-solid fa-user-lock"></i> Modo equipe <button type="button" class="tp-arch" data-arch-view title="Ver produtos arquivados"><i class="fa-solid fa-box-archive"></i> <span class="tp-l1">Arquivados</span><span class="tp-l2">Voltar ao catálogo</span> <b data-arch-n>0</b></button><a href="${CFG.root}talao.html">Talão</a><button type="button" onclick="Motor.configEditor()" title="Link do editor de anúncios"><i class="fa-solid fa-gear"></i></button><button onclick="Motor.teamLogout()">Sair</button></div>`);
   }
 
   // Barra de apresentação: trocar de modelo e de logo (só nesta prévia)
@@ -658,6 +853,14 @@
       }
     });
     document.addEventListener('click', e => {
+      const ed = e.target.closest('[data-ed-edit],[data-ed-arch],[data-ed-unarch],[data-arch-view]');
+      if (ed) {
+        e.preventDefault(); e.stopPropagation();
+        if (ed.hasAttribute('data-arch-view')) toggleArchView();
+        else if (ed.hasAttribute('data-ed-edit')) openEditor(ed.dataset.edEdit);
+        else setArchived((ed.dataset.edArch || ed.dataset.edUnarch).split(',').filter(Boolean), ed.hasAttribute('data-ed-arch'));
+        return;
+      }
       const el = e.target.closest('[data-cat],[data-open],[data-add],[data-open-cart],[data-theme-toggle],[data-unset],[data-reset],[data-more-btn],[data-set-cat],[data-qty-add],[data-scroll-top],[data-sort-btn]');
       if (!el) return;
       if (el.hasAttribute('data-cat')) { if (el.closest('[data-cats]') && el.closest('[data-cats]').dragged) return; setCat(el.dataset.cat); }
@@ -739,6 +942,7 @@
       document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', go) : go();
     },
     open: openProduct, pick, step, zoom, go, gDrop, close, add, setQty, clearCart, sendWhatsApp, teamLogout, setCat, reset, render,
+    edit: openEditor, saveEdit, configEditor, archive: c => setArchived([].concat(c), true), unarchive: c => setArchived([].concat(c), false), archView: toggleArchView,
     get state() { return S; }, H, CFG, filtered, categories,
     // listas prontas para vitrines/carrosséis
     featured(n) { return S.items.filter(i => i.featured).sort((a, b) => a.rank - b.rank).slice(0, n || 12).map(view); },
