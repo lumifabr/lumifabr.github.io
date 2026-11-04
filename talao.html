@@ -1301,34 +1301,52 @@
       return libPdf;
     }
     let gerandoPdf = false;
+    // html2pdf põe uma camada invisível por cima da tela enquanto gera; se algo travar ela ficava ali
+    // e bloqueava os outros botões (ex.: WhatsApp). Esta função sempre limpa tudo.
+    function limparPdf() { document.querySelectorAll('.html2pdf__overlay, .pdf-caixa').forEach(el => el.remove()); }
+    const esperar = (ms, v) => new Promise(r => setTimeout(() => r(v), ms));
     async function gerarPdfArquivo(nome) {
-      if (gerandoPdf) return; gerandoPdf = true;
+      if (gerandoPdf) { toast('Ainda gerando o PDF… aguarde'); return; }
+      gerandoPdf = true; limparPdf();
       toast('Gerando PDF…');
-      let caixa = null;
       try {
         await carregarLibPdf();
         // cópia do documento fora da tela, no tamanho A4 (794 px = 210 mm), sem o zoom da prévia
-        caixa = document.createElement('div');
-        caixa.style.cssText = 'position:fixed;left:-10000px;top:0;width:794px;background:#fff;';
+        const caixa = document.createElement('div');
+        caixa.className = 'pdf-caixa';
+        caixa.style.cssText = 'position:fixed;left:-10000px;top:0;width:794px;background:#fff;pointer-events:none;';
         const d = $('doc').cloneNode(true);
         d.removeAttribute('id');
         d.style.cssText = 'zoom:1;box-shadow:none;margin:0;width:794px;min-height:1058px;';
+        d.querySelectorAll('img').forEach(im => im.removeAttribute('loading'));
         caixa.appendChild(d); document.body.appendChild(caixa);
-        await Promise.all([...d.querySelectorAll('img')].map(im => im.complete ? 0 : new Promise(r => { im.onload = im.onerror = r; })));
-        if (document.fonts && document.fonts.ready) await document.fonts.ready;
-        const blob = await html2pdf().set({
+        // espera as fotos (no máximo 4 s — foto que não carrega não pode travar o PDF)
+        await Promise.race([
+          Promise.all([...d.querySelectorAll('img')].map(im => im.complete ? 0 : new Promise(r => { im.addEventListener('load', r); im.addEventListener('error', r); }))),
+          esperar(4000)
+        ]);
+        // iPhone tem limite de tamanho de imagem: reduz a nitidez em pedidos muito longos
+        const alt = Math.max(d.offsetHeight, 1058);
+        const escala = Math.max(1, Math.min(2, Math.sqrt(14e6 / (794 * alt))));
+        const tarefa = html2pdf().set({
           margin: [8, 0, 8, 0],
           filename: nome + '.pdf',
-          image: { type: 'jpeg', quality: 0.95 },
-          html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff', windowWidth: 794, scrollX: 0, scrollY: 0 },
+          image: { type: 'jpeg', quality: 0.92 },
+          html2canvas: {
+            scale: escala, useCORS: true, backgroundColor: '#ffffff', windowWidth: 794, scrollX: 0, scrollY: 0, logging: false, imageTimeout: 4000,
+            // copia só o documento do PDF (o resto da página tem fotos "lazy" que no iPhone nunca carregam e travavam)
+            ignoreElements: el => el.parentElement === document.body && !el.classList.contains('html2pdf__overlay') && !/^(SCRIPT|STYLE|LINK)$/.test(el.tagName)
+          },
           jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
           pagebreak: { mode: ['css'], avoid: ['tr', '.baixo', '.assin', '.tot', '.bloco', '.duas'] }
         }).from(d).outputPdf('blob');
+        const blob = await Promise.race([tarefa, esperar(45000, null)]);
+        if (!blob) throw new Error('tempo');
         mostrarPdfPronto(new File([blob], nome + '.pdf', { type: 'application/pdf' }));
       } catch (e) {
-        toast(e && e.message === 'lib' ? 'Sem internet para gerar o PDF' : 'Não foi possível gerar o PDF');
+        toast(e && e.message === 'lib' ? 'Sem internet para gerar o PDF' : 'Não foi possível gerar o PDF — tente de novo');
       } finally {
-        if (caixa) caixa.remove();
+        limparPdf();
         gerandoPdf = false;
       }
     }
@@ -1387,7 +1405,9 @@
       let tel = (pedido.cliente.cel || '').replace(/\D/g, '');
       if (tel.length === 10 || tel.length === 11) tel = '55' + tel;
       const url = tel.length >= 12 ? `https://wa.me/${tel}?text=${encodeURIComponent(m)}` : `https://wa.me/?text=${encodeURIComponent(m)}`;
-      window.open(url, '_blank');
+      limparPdf();
+      const w = window.open(url, '_blank');
+      if (!w) location.href = url;   // app da tela de início do iPhone às vezes bloqueia a janela nova
     }
 
     // ================== CABEÇALHO, NOTAS E CONFIG ==================
