@@ -1274,8 +1274,94 @@
       salvarPedido(false); marcarVazios(); renderDoc();
       const antigo = document.title;
       const cli = (pedido.cliente.nome || '').replace(/[\\/:*?"<>|]+/g, '').trim();
-      document.title = `${pedido.tipo || 'Pedido'} ${pedido.numero}${cli ? ' - ' + cli : ''}`;   // vira o nome do arquivo PDF
+      const nomeArq = `${pedido.tipo || 'Pedido'} ${pedido.numero}${cli ? ' - ' + cli : ''}`;
+      // No celular/tablet (e principalmente no "app" da tela de início do iPhone, onde o imprimir
+      // do navegador não faz nada) o PDF é gerado aqui mesmo e aberto no compartilhar do aparelho.
+      if (usarPdfGerado()) { gerarPdfArquivo(nomeArq); return; }
+      document.title = nomeArq;   // vira o nome do arquivo PDF
       setTimeout(() => { window.print(); setTimeout(() => document.title = antigo, 500); }, 50);
+    }
+
+    // ================== PDF GERADO NO APARELHO (celular / app da tela de início) ==================
+    function usarPdfGerado() {
+      const app = window.navigator.standalone === true || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
+      const toque = window.matchMedia && matchMedia('(pointer: coarse)').matches;
+      return app || toque;
+    }
+    let libPdf = null;
+    function carregarLibPdf() {
+      if (window.html2pdf) return Promise.resolve();
+      if (libPdf) return libPdf;
+      libPdf = new Promise((ok, erro) => {
+        const sc = document.createElement('script');
+        sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+        sc.onload = ok; sc.onerror = () => { libPdf = null; erro(new Error('lib')); };
+        document.head.appendChild(sc);
+      });
+      return libPdf;
+    }
+    let gerandoPdf = false;
+    async function gerarPdfArquivo(nome) {
+      if (gerandoPdf) return; gerandoPdf = true;
+      toast('Gerando PDF…');
+      let caixa = null;
+      try {
+        await carregarLibPdf();
+        // cópia do documento fora da tela, no tamanho A4 (794 px = 210 mm), sem o zoom da prévia
+        caixa = document.createElement('div');
+        caixa.style.cssText = 'position:fixed;left:-10000px;top:0;width:794px;background:#fff;';
+        const d = $('doc').cloneNode(true);
+        d.removeAttribute('id');
+        d.style.cssText = 'zoom:1;box-shadow:none;margin:0;width:794px;min-height:1058px;';
+        caixa.appendChild(d); document.body.appendChild(caixa);
+        await Promise.all([...d.querySelectorAll('img')].map(im => im.complete ? 0 : new Promise(r => { im.onload = im.onerror = r; })));
+        if (document.fonts && document.fonts.ready) await document.fonts.ready;
+        const blob = await html2pdf().set({
+          margin: [8, 0, 8, 0],
+          filename: nome + '.pdf',
+          image: { type: 'jpeg', quality: 0.95 },
+          html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff', windowWidth: 794, scrollX: 0, scrollY: 0 },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+          pagebreak: { mode: ['css'], avoid: ['tr', '.baixo', '.assin', '.tot', '.bloco', '.duas'] }
+        }).from(d).outputPdf('blob');
+        mostrarPdfPronto(new File([blob], nome + '.pdf', { type: 'application/pdf' }));
+      } catch (e) {
+        toast(e && e.message === 'lib' ? 'Sem internet para gerar o PDF' : 'Não foi possível gerar o PDF');
+      } finally {
+        if (caixa) caixa.remove();
+        gerandoPdf = false;
+      }
+    }
+    function mostrarPdfPronto(arq) {
+      const url = URL.createObjectURL(arq);
+      const podeCompartilhar = !!(navigator.canShare && navigator.canShare({ files: [arq] }));
+      const fundo = document.createElement('div');
+      fundo.className = 'nao-imprime';
+      fundo.style.cssText = 'position:fixed;inset:0;background:rgba(20,16,12,.55);z-index:90;display:flex;align-items:center;justify-content:center;padding:20px;';
+      fundo.innerHTML = `<div style="background:#fff;border-radius:16px;padding:22px 20px 18px;max-width:340px;width:100%;text-align:center;font-family:inherit;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+          <i class="fa-solid fa-file-pdf" style="font-size:34px;color:#B8860B"></i>
+          <h3 style="margin:10px 0 4px;font-size:17px">PDF pronto</h3>
+          <p style="margin:0 0 16px;font-size:12.5px;color:#78716C;word-break:break-word">${esc(arq.name)}</p>
+          ${podeCompartilhar ? `<button data-a="share" style="display:block;width:100%;padding:12px;border:0;border-radius:10px;background:#1C1917;color:#fff;font-weight:700;font-size:14px;margin-bottom:8px"><i class="fa-solid fa-share-from-square"></i> Compartilhar / Salvar</button>` : ''}
+          <button data-a="abrir" style="display:block;width:100%;padding:12px;border:1px solid #D6D3D1;border-radius:10px;background:#fff;color:#1C1917;font-weight:700;font-size:14px;margin-bottom:8px"><i class="fa-solid fa-eye"></i> Abrir PDF</button>
+          <button data-a="fechar" style="display:block;width:100%;padding:10px;border:0;background:none;color:#78716C;font-size:13px">Fechar</button>
+        </div>`;
+      const sair = () => { fundo.remove(); setTimeout(() => URL.revokeObjectURL(url), 60000); };
+      fundo.addEventListener('click', async ev => {
+        const b = ev.target.closest('button'); if (!b) { if (ev.target === fundo) sair(); return; }
+        const a = b.dataset.a;
+        if (a === 'fechar') return sair();
+        if (a === 'share') {
+          try { await navigator.share({ files: [arq], title: arq.name.replace(/\.pdf$/, '') }); sair(); }
+          catch (e) { if (e && e.name !== 'AbortError') toast('Não deu para compartilhar — use "Abrir PDF"'); }
+          return;
+        }
+        if (a === 'abrir') {
+          const w = window.open(url, '_blank');
+          if (!w) { const l = Object.assign(document.createElement('a'), { href: url, download: arq.name }); document.body.appendChild(l); l.click(); l.remove(); }
+        }
+      });
+      document.body.appendChild(fundo);
     }
 
     function enviarWhatsApp() {

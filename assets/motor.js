@@ -618,6 +618,18 @@
       const p = prompt('Senha da equipe:'); if (p) teamLogin(p.trim());
     };
     ask(); window.addEventListener('hashchange', ask);
+    // Atalho escondido que funciona também no "app" da tela de início do iPhone (sem barra de endereço
+    // para digitar #equipe): tocar 5 vezes seguidas no texto do rodapé (© ... LumiFa Iluminação).
+    let taps = 0, tapT = 0;
+    document.addEventListener('click', e => {
+      const f = e.target.closest && e.target.closest('footer');
+      if (!f || e.target.closest('a')) return;
+      const now = Date.now(); taps = now - tapT < 800 ? taps + 1 : 1; tapT = now;
+      if (taps < 5) return;
+      taps = 0;
+      if (S.team) { if (confirm('Modo equipe ativo. Deseja sair do modo equipe?')) teamLogout(); return; }
+      const p = prompt('Senha da equipe:'); if (p) teamLogin(p.trim());
+    });
   }
   function teamLogout() { S.team = null; S.showArch = false; store.del(CFG.teamKey); S.products.forEach(p => { p.team = null; p.teamHay = ''; }); document.body.classList.remove('is-team'); render(); toast('Modo equipe desativado'); }
 
