@@ -50,13 +50,13 @@ def get(url, **kw):
 
 
 # ---------- leitura da página ----------
-TAM = re.compile(r"-\d{2,4}x\d{2,4}(?=\.(?:jpe?g|png|webp)$)", re.I)
+TAM = re.compile(r"-\d{2,4}x\d{2,4}(?=\.(?:jpe?g|png|webp|gif)$)", re.I)
 
 
 def original(u):
     u = u.split("?")[0]
     u = TAM.sub("", u)
-    u = re.sub(r"-scaled(?=\.(?:jpe?g|png|webp)$)", "", u, flags=re.I)
+    u = re.sub(r"-scaled(?=\.(?:jpe?g|png|webp|gif)$)", "", u, flags=re.I)
     return u
 
 
@@ -72,7 +72,7 @@ def ler_pagina(url):
     def add(u):
         if not u or "/wp-content/uploads/" not in u:
             return
-        if not re.search(r"\.(jpe?g|png|webp)(\?|$)", u, re.I):
+        if not re.search(r"\.(jpe?g|png|webp|gif)(\?|$)", u, re.I):
             return
         u = original(urljoin(url, u))
         if u not in imgs:
@@ -82,10 +82,12 @@ def ler_pagina(url):
     for g in gal:
         for el in g.select("[data-large_image]"):
             add(el.get("data-large_image"))
+        for el in g.select("[data-thumb_org]"):
+            add(el.get("data-thumb_org"))
         for a in g.select("a[href]"):
             add(a["href"])
         for im in g.select("img"):
-            add(im.get("data-src") or im.get("src"))
+            add(im.get("data-large_image") or im.get("data-src") or im.get("src"))
     # fotos de variações (cores) do WooCommerce
     for f in soup.select("form.variations_form[data-product_variations]"):
         try:
@@ -171,6 +173,71 @@ def tem_marca(img):
     return False, ""
 
 
+CARIMBO = re.compile(r"EB[A-Z]{0,4}\d{3,}|[A-Z]{2,4}\d{4,}|\d{1,2}:\d{2}|JANEIRO|FEVEREIRO|MARCO|ABRIL|"
+                     r"MAIO|JUNHO|JULHO|AGOSTO|SETEMBRO|OUTUBRO|NOVEMBRO|DEZEMBRO|FEIRA|SIZE")
+
+
+def limpar_carimbo(img):
+    """Apaga (pinta de branco) o carimbo de desenho técnico com o código da fábrica e a data,
+    ex.: "EBAR80329&EBAR80330 SIZE / terça-feira, 3 de junho de 2025". Só apaga sobre fundo branco."""
+    g = ImageOps.grayscale(img)
+    big = g.resize((g.width * 2, g.height * 2))
+    try:
+        d = pytesseract.image_to_data(big, config="--psm 11", output_type=pytesseract.Output.DICT)
+    except Exception:
+        return img, False
+    caixas = []
+    for i, t in enumerate(d["text"]):
+        if t.strip():
+            caixas.append((d["left"][i] // 2, d["top"][i] // 2, d["width"][i] // 2, d["height"][i] // 2,
+                           norm(t.replace("Ç", "C"))))
+    alvo = [c for c in caixas if CARIMBO.search(c[4]) and c[3] <= 30]
+    if not alvo:
+        return img, False
+    apagar = set()
+    for (x, y, w, h, _) in alvo:
+        for c in caixas:  # palavras da mesma linha/bloco pequeno, logo abaixo ou ao lado
+            cy = c[1] + c[3] / 2
+            if c[3] <= 2 * h + 4 and y - 3 * h <= cy <= y + 4 * h:
+                apagar.add(c[:4])
+    from PIL import ImageDraw, ImageStat
+    xs = [b[0] for b in apagar]; ys = [b[1] for b in apagar]
+    xe = [b[0] + b[2] for b in apagar]; ye = [b[1] + b[3] for b in apagar]
+    caixa = (max(0, min(xs) - 8), max(0, min(ys) - 8), min(img.width, max(xe) + 8), min(img.height, max(ye) + 8))
+    # só apaga se em volta do carimbo for fundo claro (texto solto, não em cima do produto)
+    x0, y0, x1, y1 = caixa
+    m = 10
+    moldura = [g.crop((max(0, x0 - m), max(0, y0 - m), min(g.width, x1 + m), y0)),
+               g.crop((max(0, x0 - m), y1, min(g.width, x1 + m), min(g.height, y1 + m))),
+               g.crop((max(0, x0 - m), y0, x0, y1)), g.crop((x1, y0, min(g.width, x1 + m), y1))]
+    vals = [ImageStat.Stat(c).mean[0] for c in moldura if c.width > 0 and c.height > 0]
+    feito = False
+    out = img
+    if vals and min(vals) > 225 and (x1 - x0) * (y1 - y0) < 0.15 * img.width * img.height:
+        out = img.copy()
+        ImageDraw.Draw(out).rectangle(caixa, fill=(255, 255, 255))
+        feito = True
+    return out, feito
+
+
+ETIQ = re.compile(r"ODEL|NPUT|UTPUT|RIVER|ROHS|BIVOLT|SLIMFIT|\d{2,3}VAC|\d{2,3}V\d")
+
+
+def etiqueta(img):
+    """Fotos com etiqueta impressa no produto (driver, fonte, lâmpada): a logo pode estar
+    pequena na etiqueta e escapar da leitura. Marca para conferência manual."""
+    g = ImageOps.grayscale(img)
+    g = g.resize((g.width * 2, g.height * 2))
+    for ang in (0, 45, -45, 90):
+        try:
+            t = pytesseract.image_to_string(g.rotate(ang, expand=True, fillcolor=255), config="--psm 11")
+        except Exception:
+            continue
+        if ETIQ.search(norm(t)):
+            return True
+    return False
+
+
 # ---------- principal ----------
 def main():
     entrada, saida = sys.argv[1], sys.argv[2]
@@ -240,7 +307,9 @@ def main():
                 continue
             else:
                 gerais.append(u)
-        escolhidas = minhas + gerais
+        # se a página tem fotos com o código deste produto, as gerais ficam de fora
+        # (costumam mostrar outra cor ou outro modelo da mesma página)
+        escolhidas = minhas if minhas else gerais
         h_atual = hash_atual(cod)
         n = 0
         for u in escolhidas:
@@ -251,6 +320,8 @@ def main():
                 else:
                     try:
                         im = Image.open(io.BytesIO(r.content))
+                        if getattr(im, "is_animated", False):
+                            im.seek(0)
                         im = ImageOps.exif_transpose(im)
                         if im.mode in ("RGBA", "LA", "P"):
                             im = im.convert("RGBA")
@@ -258,8 +329,9 @@ def main():
                             fundo.paste(im, mask=im.split()[-1])
                             im = fundo
                         im = im.convert("RGB")
+                        im, apagou = limpar_carimbo(im)
                         marca, txt = tem_marca(im)
-                        cache_img[u] = (im, marca, txt, imagehash.phash(im))
+                        cache_img[u] = (im, marca, txt, imagehash.phash(im), apagou, etiqueta(im))
                     except Exception as ex:
                         print("  erro imagem", u, ex)
                         cache_img[u] = None
@@ -269,7 +341,15 @@ def main():
                    "tipo": "propria" if u in minhas else "geral"}
             if not item:
                 linhas.append({**reg, "status": "erro_download"}); continue
-            im, marca, txt, ph = item
+            im, marca, txt, ph, apagou, etq = item
+            motivo = []
+            if p.get("conferir_tipo"):
+                motivo.append("tipo_produto")
+            if etq:
+                motivo.append("etiqueta")
+            if reg["tipo"] == "geral":
+                motivo.append("foto_geral_da_pagina")
+            reg.update(carimbo_apagado="sim" if apagou else "", conferir="+".join(motivo), nome=p.get("nome", ""))
             reg.update(largura=im.width, altura=im.height)
             if marca:
                 status = "marca_embuled"
@@ -293,7 +373,8 @@ def main():
         if not escolhidas:
             linhas.append({**base, "origem": origem, "pagina": pag["url"], "status": "pagina_sem_fotos"})
 
-    campos = ["codigo", "codigo_embuled", "foto_errada", "status", "arquivo", "tipo", "origem",
+    campos = ["codigo", "codigo_embuled", "nome", "foto_errada", "status", "arquivo", "tipo", "conferir",
+              "carimbo_apagado", "origem",
               "sku_confere", "sku_pagina", "largura", "altura", "pagina", "url_foto", "texto_lido"]
     with open(f"{saida}/relatorio.csv", "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=campos, extrasaction="ignore")
