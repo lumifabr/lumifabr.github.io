@@ -120,6 +120,10 @@
   .hero-art figure:first-child { grid-row: span 2; }
   .hero-art img { width: 100%; height: 100%; object-fit: contain; padding: 22px; mix-blend-mode: multiply; transition: transform .8s; }
   .hero-art figure:hover img { transform: scale(1.05); }
+  .hero-art figure img, .hero-art figcaption { transition: opacity .45s ease, transform .8s; }
+  .hero-art figure.troca img { opacity: 0; transform: scale(.96); }
+  .hero-art figure.troca figcaption { opacity: 0; }
+  @media (prefers-reduced-motion: reduce) { .hero-art figure img, .hero-art figcaption { transition: none; } }
   .hero-art figcaption { position: absolute; left: 12px; bottom: 12px; font-size: 12px; font-weight: 700; color: #3D372F; background: rgba(255,255,255,.9); padding: 5px 10px; border-radius: 999px; }
   @media (max-width: 900px) { .hero-in { grid-template-columns: 1fr; padding-top: 32px; padding-bottom: 30px; gap: 26px; } .hero-art { height: 300px; } .stats { gap: 26px; } .stats b { font-size: 26px; } }
 
@@ -401,18 +405,59 @@ Motor.init({
     try { if (sessionStorage.getItem('modelos_vista') === 'list') document.querySelector('[data-view="list"]').click(); } catch (_) {}
     document.querySelector('[data-stat-items]').textContent = S.items.length.toLocaleString('pt-BR');
     document.querySelector('[data-stat-cats]').textContent = M.categories().length - 1;
-    // capa: 1 novidade do catálogo + 2 peças de categorias diferentes (nunca duas da mesma)
-    const used = new Set(), pick = [];
+    // capa dinâmica: 3 vitrines que trocam de produto a cada 7s
+    // vitrine 1 = novidades decorativas; vitrines 2 e 3 = peças de categorias variadas (nunca a mesma categoria ao mesmo tempo)
+    const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
     const deco = /Pendentes|Lustres|Arandelas|Plafons|Abajures/;
-    const novo = M.newest(40).find(i => deco.test(i.category)) || M.newest(1)[0];
-    if (novo) { pick.push([novo, 'Novidade · ' + novo.category]); used.add(novo.category); }
-    for (const c of ['Lustres', 'Ventiladores', 'Arandelas', 'Pendentes', 'Plafons', 'Abajures & Mesa', 'Painéis de LED', 'Spots']) {
-      if (pick.length >= 3) break;
-      if (used.has(c)) continue;
-      const it = M.byCat(c, 1)[0];
-      if (it) { pick.push([it, c]); used.add(c); }
-    }
-    document.querySelector('[data-hero-art]').innerHTML = pick.map(([it, cap]) => `<figure data-open="${H.esc(it.code)}">${H.img(it)}<figcaption>${H.esc(cap)}</figcaption></figure>`).join('');
+    const comFoto = i => i && i.image;
+    let novos = M.newest(40).filter(i => deco.test(i.category) && comFoto(i));
+    if (novos.length < 3) novos = M.newest(40).filter(comFoto);
+    const cats = ['Lustres', 'Ventiladores', 'Arandelas', 'Pendentes', 'Plafons', 'Abajures & Mesa', 'Painéis de LED', 'Spots'];
+    const vitrine = [];
+    for (const c of cats) for (const it of M.byCat(c, 8)) if (comFoto(it)) vitrine.push([it, c]);
+    const filas = [shuffle(novos.map(i => [i, 'Novidade · ' + i.category])), shuffle(vitrine.slice()), []];
+    const pos = [0, 0, 0];
+    const atual = [null, null, null];
+    const proximo = slot => {
+      if (slot === 0) { const f = filas[0]; if (!f.length) return null; const r = f[pos[0]++ % f.length]; return r; }
+      const f = filas[1]; if (!f.length) return null;
+      const ocupadas = new Set(atual.filter((x, k) => x && k !== slot).map(x => x[1].replace('Novidade · ', '')));
+      const vistos = new Set(atual.filter(Boolean).map(x => x[0].code));
+      for (let t = 0; t < f.length; t++) {
+        const r = f[pos[1]++ % f.length];
+        if (!ocupadas.has(r[1]) && !vistos.has(r[0].code)) return r;
+      }
+      return f[pos[1]++ % f.length];
+    };
+    const box = document.querySelector('[data-hero-art]');
+    for (let k = 0; k < 3; k++) atual[k] = proximo(k);
+    const ini = atual.filter(Boolean);
+    box.innerHTML = ini.map(([it, cap]) => `<figure data-open="${H.esc(it.code)}">${H.img(it)}<figcaption>${H.esc(cap)}</figcaption></figure>`).join('');
+    const figs = [...box.querySelectorAll('figure')];
+    const trocar = (slot, atraso) => setTimeout(() => {
+      const fig = figs[slot], r = proximo(slot);
+      if (!fig || !r) return;
+      atual[slot] = r;
+      const tmp = document.createElement('div'); tmp.innerHTML = H.img(r[0]);
+      const nova = tmp.firstElementChild; nova.removeAttribute('loading');
+      const aplicar = () => {
+        fig.classList.add('troca');
+        setTimeout(() => {
+          fig.querySelector('img').replaceWith(nova);
+          fig.querySelector('figcaption').textContent = r[1];
+          fig.dataset.open = r[0].code;
+          fig.classList.remove('troca');
+        }, 450);
+      };
+      if (nova.complete) aplicar(); else { nova.onload = aplicar; nova.onerror = aplicar; }
+    }, atraso);
+    let pausado = false;
+    box.addEventListener('mouseenter', () => pausado = true);
+    box.addEventListener('mouseleave', () => pausado = false);
+    if (figs.length === 3) setInterval(() => {
+      if (pausado || document.hidden) return;
+      trocar(0, 0); trocar(1, 250); trocar(2, 500);
+    }, 7000);
     const nw = M.newest(16);
     document.getElementById('novos').innerHTML = (nw.length ? nw : S.items.slice(-12)).map(i => card(i, H)).join('');
     document.querySelector('[data-year]').textContent = new Date().getFullYear();
