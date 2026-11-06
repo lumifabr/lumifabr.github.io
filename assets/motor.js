@@ -123,7 +123,7 @@
     const r = CFG.root + 'modelos/img/';
     const em = dark ? 'fr-emblema-claro.png' : 'fr-emblema.png';
     const fr = `<span class="brand-fr"><img src="${r + em}" alt="" class="brand-emblem"><span class="brand-words"><b>${esc(CFG.brandName)}</b><small>${esc(CFG.brandSub)}</small></span></span>`;
-    if (mode === 'lumifa') return `<img src="${CFG.root + 'imagens/' + (dark ? 'logo-escuro.png?v=2' : 'logo.png')}" alt="LumiFa Iluminação" class="brand-lumifa solo">`;
+    if (mode === 'lumifa') return `<img src="${CFG.root + 'imagens/' + (dark ? 'logo-escuro.png?v=3' : 'logo.png?v=3')}" alt="LumiFa Iluminação" class="brand-lumifa solo">`;
     if (mode === 'frc') return `<img src="${r + (dark ? 'fr-logo-claro.png' : 'fr-logo.png')}" alt="${esc(CFG.brandName)}" class="brand-circle">`;
     if (mode === 'duo') return `<img src="${r + (dark ? 'logo-escuro.png' : 'logo.png')}" alt="LumiFa Iluminação" class="brand-lumifa"><span class="brand-sep" aria-hidden="true"></span>${fr}`;
     return fr;
