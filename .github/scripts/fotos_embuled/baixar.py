@@ -238,6 +238,16 @@ def etiqueta(img):
     return False
 
 
+def salvar_relatorio(saida, linhas):
+    campos = ["codigo", "codigo_embuled", "nome", "foto_errada", "status", "arquivo", "tipo", "conferir",
+              "carimbo_apagado", "origem",
+              "sku_confere", "sku_pagina", "largura", "altura", "pagina", "url_foto", "texto_lido"]
+    with open(f"{saida}/relatorio.csv", "w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=campos, extrasaction="ignore")
+        w.writeheader()
+        w.writerows(linhas)
+
+
 # ---------- principal ----------
 def main():
     entrada, saida = sys.argv[1], sys.argv[2]
@@ -273,6 +283,8 @@ def main():
             return None
 
     for i, p in enumerate(produtos, 1):
+        if i % 25 == 0:  # grava o relatório aos poucos (se a rodada for interrompida, não se perde)
+            salvar_relatorio(saida, linhas)
         cod, ce = p["codigo"], p["codigo_embuled"]
         print(f"[{i}/{len(produtos)}] {cod} {ce}", flush=True)
         base = {"codigo": cod, "codigo_embuled": ce, "foto_errada": p["foto_errada"]}
@@ -373,13 +385,7 @@ def main():
         if not escolhidas:
             linhas.append({**base, "origem": origem, "pagina": pag["url"], "status": "pagina_sem_fotos"})
 
-    campos = ["codigo", "codigo_embuled", "nome", "foto_errada", "status", "arquivo", "tipo", "conferir",
-              "carimbo_apagado", "origem",
-              "sku_confere", "sku_pagina", "largura", "altura", "pagina", "url_foto", "texto_lido"]
-    with open(f"{saida}/relatorio.csv", "w", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=campos, extrasaction="ignore")
-        w.writeheader()
-        w.writerows(linhas)
+    salvar_relatorio(saida, linhas)
     from collections import Counter
     print("RESUMO", Counter(l["status"] for l in linhas))
 
