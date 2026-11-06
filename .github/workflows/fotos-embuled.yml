@@ -1,0 +1,51 @@
+# Baixa fotos extras dos produtos Embuled do site da fábrica (embuled.com).
+# Roda só quando você manda (aba Actions > "Fotos Embuled" > Run workflow).
+# As fotos NÃO vão para o site: ficam no branch "fotos-embuled" para revisão.
+# Fotos com o nome EMBULED são descartadas automaticamente.
+name: Fotos Embuled
+on:
+  workflow_dispatch:
+    inputs:
+      somente:
+        description: 'Vazio = todos. "foto_errada" = só os com foto errada. Ou códigos: PROD-123,PROD-124'
+        required: false
+        default: ''
+permissions:
+  contents: write
+concurrency:
+  group: fotos-embuled
+  cancel-in-progress: false
+jobs:
+  baixar:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 340
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          sparse-checkout: |
+            .github
+            imagens
+          sparse-checkout-cone-mode: true
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Instalar leitor de texto (OCR)
+        run: sudo apt-get update -q && sudo apt-get install -y -q tesseract-ocr
+      - name: Instalar bibliotecas
+        run: pip install requests beautifulsoup4 pillow pytesseract imagehash
+      - name: Baixar fotos
+        env:
+          SOMENTE: ${{ github.event.inputs.somente }}
+        run: |
+          python .github/scripts/fotos_embuled/baixar.py \
+            .github/scripts/fotos_embuled/produtos.csv /tmp/saida imagens
+      - name: Salvar no branch fotos-embuled
+        if: always()
+        run: |
+          cd /tmp/saida
+          git init -q -b fotos-embuled
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Fotos Embuled para revisão ($(date +%d/%m/%Y))"
+          git push -q --force "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" fotos-embuled
