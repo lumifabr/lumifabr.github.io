@@ -436,12 +436,15 @@
 
   // ================== GALERIA DE FOTOS DO PRODUTO ==================
   const FOTO_TIPO = { '3': 'Ficha técnica', '4': 'Temperaturas de cor' };
+  // 10-19 = outras fotos do produto (vêm logo depois da principal); 20-29 = medidas/desenho técnico
+  const fotoLabel = n => FOTO_TIPO[n] || (n >= 20 && n < 30 ? 'Medidas' : n >= 10 && n < 20 ? 'Foto do produto' : 'Foto ' + n);
+  const fotoOrdem = n => (n >= 10 && n < 20 ? n - 100 : +n);
   function galleryOf(p) {
     const g = [{ src: p.image, mini: thumbOf(p.image), label: 'Foto do produto', main: true }];
     if (p.image === FALLBACK) return g;
-    (S.fotos[String(p.code).toUpperCase()] || []).forEach(n => {
+    [...(S.fotos[String(p.code).toUpperCase()] || [])].sort((a, b) => fotoOrdem(+a) - fotoOrdem(+b)).forEach(n => {
       const f = String(p.code).toUpperCase() + '-' + n + '.webp';
-      g.push({ src: CFG.root + 'galeria/' + f, mini: CFG.root + 'galeria/mini/' + f, label: FOTO_TIPO[n] || 'Foto ' + n });
+      g.push({ src: CFG.root + 'galeria/' + f, mini: CFG.root + 'galeria/mini/' + f, label: fotoLabel(+n) });
     });
     return g;
   }
