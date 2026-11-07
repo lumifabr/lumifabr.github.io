@@ -10,6 +10,14 @@ on:
         description: 'Vazio = todos. "foto_errada" = só os com foto errada. Ou códigos: PROD-123,PROD-124'
         required: false
         default: ''
+      aceitar_marca:
+        description: '1 = não descarta fotos com o nome impresso no produto'
+        required: false
+        default: ''
+      branch:
+        description: 'Branch onde salvar o resultado'
+        required: false
+        default: 'fotos-embuled'
 permissions:
   contents: write
 concurrency:
@@ -36,6 +44,7 @@ jobs:
       - name: Baixar fotos
         env:
           SOMENTE: ${{ github.event.inputs.somente }}
+          ACEITAR_MARCA: ${{ github.event.inputs.aceitar_marca }}
         run: |
           python .github/scripts/fotos_embuled/baixar.py \
             .github/scripts/fotos_embuled/produtos.csv /tmp/saida imagens
@@ -43,9 +52,10 @@ jobs:
         if: always()
         run: |
           cd /tmp/saida
-          git init -q -b fotos-embuled
+          BR="${{ github.event.inputs.branch }}"; BR="${BR:-fotos-embuled}"
+          git init -q -b "$BR"
           git config user.name "github-actions"
           git config user.email "github-actions@users.noreply.github.com"
           git add -A
           git commit -q -m "Fotos Embuled para revisão ($(date +%d/%m/%Y))"
-          git push -q --force "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" fotos-embuled
+          git push -q --force "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" "$BR"

@@ -363,7 +363,7 @@ def main():
                 motivo.append("foto_geral_da_pagina")
             reg.update(carimbo_apagado="sim" if apagou else "", conferir="+".join(motivo), nome=p.get("nome", ""))
             reg.update(largura=im.width, altura=im.height)
-            if marca:
+            if marca and os.environ.get("ACEITAR_MARCA", "") != "1":
                 status = "marca_embuled"
             elif min(im.size) < MIN_LADO:
                 status = "pequena"
