@@ -25,15 +25,14 @@ if(!window.__wk){const blob=new Blob(["onmessage=e=>setTimeout(()=>postMessage(e
    if(!inp()) throw 'sem campo de fotos';
    const antes=els().map(e=>e.getAttribute('data-element-id'));
    let falhas=0;
-   for(const n of job.fotos){
-     const b=await (await fetch(B+n)).blob();
-     const dt=new W.DataTransfer(); dt.items.add(new W.File([b],n,{type:'image/jpeg'}));
+   const up=async n=>{const b=await (await fetch(B+n)).blob(); const dt=new W.DataTransfer(); dt.items.add(new W.File([b],n,{type:'image/jpeg'}));
      const k=els().length; const I=inp(); I.files=dt.files; I.dispatchEvent(new W.Event('change',{bubbles:true}));
      let ok=false; for(let i=0;i<40;i++){await sleep(500); const e=els(); if(e.length>k){const id=e[e.length-1].getAttribute('data-element-id'); if(id&&/MLB/.test(id)){ok=true;break;}}}
-     if(!ok) falhas++;
-   }
+     if(!ok) falhas++;};
+   const fs=[...job.fotos];
+   if(job.remover){ await up(fs.shift()); for(const id of antes){const e=els().find(x=>x.getAttribute('data-element-id')==id); const del=e&&e.querySelector('button[aria-label^="Excluir foto"]'); if(del){del.click(); await sleep(1200);}} }
+   for(const n of fs) await up(n);
    if(falhas) throw 'upload falhou '+falhas;
-   if(job.remover){ for(const id of antes){const e=els().find(x=>x.getAttribute('data-element-id')==id); const del=e&&e.querySelector('button[aria-label^="Excluir foto"]'); if(del){del.click(); await sleep(1200);}} }
    const c=[...d.querySelectorAll('button')].find(x=>x.innerText.trim()=='Confirmar'&&!x.disabled);
    if(!c) throw 'sem Confirmar';
    c.click();
