@@ -105,3 +105,13 @@ def banner():
       <p style='font-size:28px;color:#cbbf9f;margin-top:28px'>lumifa.com.br · link na bio</p>
     </div></div>"""
     return page(body, W, 1350)
+
+def story_post(src, kicker, title, sub='Veja no feed · @lumifa.br'):
+    body = f"""<div class='c dark' style='background:radial-gradient(ellipse 90% 45% at 50% 30%, #3a2c14 0%, #1d160e 50%, {INK} 80%)'>
+    <img src='{LOGO_DARK}' style='position:absolute;top:250px;left:50%;transform:translateX(-50%);height:66px'>
+    <div style='position:absolute;top:400px;left:0;right:0;text-align:center'><div class='kick'>{kicker}</div></div>
+    <div style='position:absolute;top:470px;left:140px;width:800px;height:1000px;border-radius:24px;overflow:hidden;box-shadow:0 40px 90px rgba(0,0,0,.6);border:2px solid rgba(212,175,55,.5)'><img src='{src}' style='width:100%;height:100%;object-fit:cover'></div>
+    <div style='position:absolute;top:1510px;left:90px;right:90px;text-align:center'>
+      <h1 style='font-size:64px'>{title}</h1>
+      <p style='font-size:30px;color:#cbbf9f;margin-top:16px;letter-spacing:.04em'>{sub}</p></div></div>"""
+    return page(body, 1080, 1920)
