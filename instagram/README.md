@@ -14,8 +14,11 @@ Pasta só do Instagram. Nada daqui aparece no catálogo do site; as imagens fica
 - Só produtos Ativos e com foto; nenhuma imagem com marca d'água.
 - Variações de cor/temperatura = um produto com opções, "a partir de R$".
 
-## Rotina
-3 posts por dia: 09:00 dica · 12:30 produto · 19:30 inspiração/institucional (horário de Brasília).
+## Rotina (desde 10/11/2026)
+- Feed: 1 publicação por dia às 19:00, alternando **dia de foto** (post/carrossel) e **dia de Reel**. Nunca os dois no mesmo dia.
+- Stories: 6 por dia — 08:30 dica · 10:30 produto · 12:30 dica · 15:30 produto · 19:30 chamada para o post/Reel do dia · 21:30 chamada (orçamento/lojista/código).
+- Tudo que vai ao ar está em `agenda.json` (data, hora, tipo post|reel|story, status). Os arquivos `calendario-*.json` são o estoque de conteúdo pronto.
+- `stories/banco/` = banco de stories (dicas, produtos, chamadas).
 Publicação feita pelo Claude via Windsor.ai (conta @lumifa.br).
 
 ## Como gerar uma nova semana
