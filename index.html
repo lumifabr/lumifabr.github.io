@@ -87,6 +87,11 @@
   .quick button:hover { color: var(--text); }
   .esp { margin-left: auto; text-decoration: none; font-size: 13.5px; font-weight: 700; color: var(--wa); display: inline-flex; gap: 7px; align-items: center; white-space: nowrap; }
   @media (max-width: 760px) { .esp span { display: none; } .nav2 .wrap { gap: 16px; } }
+  .ig { text-decoration: none; font-size: 13.5px; font-weight: 700; color: #96701A; display: inline-flex; gap: 7px; align-items: center; white-space: nowrap; }
+  .ig i { font-size: 17px; }
+  .ig:hover { color: #D4AF37; }
+  @media (max-width: 760px) { .ig span { display: none; } }
+  .ig-foot { color: #D4AF37; text-decoration: none; font-weight: 600; display: inline-flex; gap: 7px; align-items: center; }
   .mega { position: absolute; left: 0; right: 0; top: 100%; background: var(--surface); border-bottom: 1px solid var(--line); box-shadow: 0 30px 50px -30px rgba(0,0,0,.35); padding: 22px 0 26px; display: none; max-height: calc(100vh - 140px); overflow: auto; }
   body.mega-open .mega { display: block; }
   .tiles { display: grid; grid-template-columns: repeat(8, 1fr); gap: 12px; }
@@ -279,6 +284,7 @@
       <button class="allcats" onclick="toggleMega()"><i class="fa-solid fa-bars"></i> Todas as categorias <i class="fa-solid fa-chevron-down"></i></button>
       <div class="quick"><button data-set-cat="Pendentes">Pendentes</button><button data-set-cat="Lustres">Lustres</button><button data-set-cat="Painéis de LED">Painéis de LED</button><button data-set-cat="Spots">Spots</button><button data-set-cat="Arandelas">Arandelas</button><button data-set-cat="Lâmpadas & Filamentos">Lâmpadas</button><button data-set-cat="Iluminação Externa & Jardim">Jardim</button></div>
       <a class="esp" href="https://wa.me/5511959781849?text=Ol%C3%A1!%20Vim%20pelo%20cat%C3%A1logo%20da%20LumiFa%20e%20gostaria%20de%20falar%20com%20uma%20especialista." target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i><span>Fale com nossa especialista</span></a>
+      <a class="ig" href="https://www.instagram.com/lumifa.br/" target="_blank" rel="noopener" aria-label="Instagram @lumifa.br"><i class="fa-brands fa-instagram"></i><span>@lumifa.br</span></a>
     </div></div>
     <div class="mega"><div class="wrap"><div class="tiles" data-cats="tile"></div></div></div>
   </header>
@@ -334,10 +340,11 @@
 
   <section class="band"><div class="wrap band-in">
     <div><span class="eyebrow">Atendimento</span><h3>Fale com nossa especialista</h3><p>Montou a lista? Envie o orçamento pelo WhatsApp e receba disponibilidade, prazos e condições para lojistas, arquitetos e consumidores.</p>
-      <a href="https://wa.me/5511959781849?text=Ol%C3%A1!%20Vim%20pelo%20cat%C3%A1logo%20da%20LumiFa%20e%20gostaria%20de%20falar%20com%20uma%20especialista." target="_blank" rel="noopener" class="btn-solid"><i class="fa-brands fa-whatsapp"></i> Chamar no WhatsApp</a></div>
+      <a href="https://wa.me/5511959781849?text=Ol%C3%A1!%20Vim%20pelo%20cat%C3%A1logo%20da%20LumiFa%20e%20gostaria%20de%20falar%20com%20uma%20especialista." target="_blank" rel="noopener" class="btn-solid"><i class="fa-brands fa-whatsapp"></i> Chamar no WhatsApp</a>
+      <a href="https://www.instagram.com/lumifa.br/" target="_blank" rel="noopener" class="btn-out" style="margin:10px 0 0 10px"><i class="fa-brands fa-instagram" style="color:#96701A"></i> Siga @lumifa.br</a></div>
     <ul><li><i class="fa-solid fa-clipboard-check"></i>Orçamento sem compromisso, em poucos cliques</li><li><i class="fa-solid fa-store"></i>Condições especiais para lojistas</li><li><i class="fa-solid fa-shield-halved"></i>Produtos com garantia dos fabricantes</li></ul>
   </div></section>
-  <footer><div class="wrap frow"><a href="./" class="brand" data-brand data-dark></a><span>© <span data-year></span> LumiFa Iluminação · (11) 95978-1849 · Imagens meramente ilustrativas.</span></div></footer>
+  <footer><div class="wrap frow"><a href="./" class="brand" data-brand data-dark></a><a class="ig-foot" href="https://www.instagram.com/lumifa.br/" target="_blank" rel="noopener"><i class="fa-brands fa-instagram"></i> Siga no Instagram: @lumifa.br</a><span>© <span data-year></span> LumiFa Iluminação · (11) 95978-1849 · Imagens meramente ilustrativas.</span></div></footer>
   <a class="wa-fab" href="https://wa.me/5511959781849?text=Ol%C3%A1!%20Vim%20pelo%20cat%C3%A1logo%20da%20LumiFa." target="_blank" rel="noopener" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
