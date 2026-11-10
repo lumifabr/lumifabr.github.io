@@ -64,7 +64,7 @@ MODELS = {
               after_hero=STRIP, before_band=STEPS + LOJISTA),
     'b': dict(file='b-galeria.html', nome='Galeria',
               h1='Iluminação com <em>olhar de ateliê</em>',
-              hero_top='', after_hero=STRIP + STEPS, before_band=REELS + LOJISTA),
+              hero_top='', after_hero=STRIP + STEPS, before_band=REELS),
     'c': dict(file='c-vitrine.html', nome='Vitrine',
               h1='Peças que <em>acendem</em> o ambiente',
               hero_top='', after_hero=STRIP, before_band=STEPS + REELS),
