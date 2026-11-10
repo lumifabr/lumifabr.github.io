@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Novos modelos do site (v2) · LumiFa</title>
+<link rel="icon" type="image/png" href="../../imagens/icone.png?v=3">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --bg: #F7F4EE; --ink: #1A1612; --muted: #7C7266; --line: #E5DED2; --gold: #96701A; --dark: #15110D; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: 'Manrope', system-ui, sans-serif; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+  .k { font-size: 12px; letter-spacing: .28em; text-transform: uppercase; color: var(--gold); font-weight: 800; }
+  h1, h2, h3 { font-family: 'Playfair Display', Georgia, serif; font-weight: 500; }
+  header { padding: 56px 0 34px; border-bottom: 1px solid var(--line); }
+  header img { height: 46px; }
+  h1 { font-size: clamp(36px, 5vw, 60px); line-height: 1.05; margin: 22px 0 14px; }
+  h1 em { color: var(--gold); }
+  header p { color: var(--muted); font-size: 16px; line-height: 1.7; max-width: 780px; margin: 0; }
+  .common { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 28px; }
+  .common div { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; font-size: 14px; line-height: 1.55; color: var(--muted); }
+  .common b { display: block; color: var(--ink); margin-bottom: 3px; }
+  @media (max-width: 860px) { .common { grid-template-columns: 1fr; } }
+  .model { padding: 56px 0; border-bottom: 1px solid var(--line); }
+  .mh { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
+  .mh .n { font-family: 'Playfair Display', serif; font-size: 64px; color: var(--gold); line-height: .8; }
+  .mh h2 { font-size: 44px; margin: 0; }
+  .mh span { color: var(--muted); font-size: 15px; }
+  .shots { display: grid; grid-template-columns: 1fr 1fr 230px; gap: 14px; align-items: start; }
+  .shots figure { margin: 0; }
+  .shots img { width: 100%; display: block; border-radius: 12px; border: 1px solid var(--line); box-shadow: 0 24px 50px -32px rgba(0,0,0,.4); background: #fff; }
+  .shots .m img { border-radius: 22px; border: 5px solid var(--dark); }
+  .shots figcaption { font-size: 12.5px; color: var(--muted); margin-top: 8px; }
+  @media (max-width: 900px) { .shots { grid-template-columns: 1fr 1fr; } .shots .m { grid-column: span 2; max-width: 240px; } }
+  .cols { display: grid; grid-template-columns: 1.3fr 1fr; gap: 34px; margin-top: 26px; }
+  .cols p { line-height: 1.7; color: #44403C; margin: 0 0 12px; }
+  .cols ul { margin: 0; padding-left: 18px; line-height: 1.75; font-size: 14.5px; color: #44403C; }
+  .cols h4 { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; }
+  @media (max-width: 860px) { .cols { grid-template-columns: 1fr; } }
+  .btns { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+  .btn { display: inline-flex; gap: 8px; align-items: center; text-decoration: none; font-weight: 800; font-size: 14px; padding: 13px 20px; border-radius: 999px; background: var(--ink); color: #fff; }
+  .btn.l { background: none; color: var(--ink); border: 1px solid var(--ink); }
+  .tag { display: inline-block; font-size: 12px; font-weight: 800; background: #F3EBD9; color: #7A5A12; padding: 4px 10px; border-radius: 999px; margin-left: 6px; vertical-align: middle; }
+  .rec { background: var(--dark); color: #EDE6DA; border-radius: 22px; padding: 38px 40px; margin: 56px 0; }
+  .rec h2 { color: #fff; font-size: 34px; margin: 10px 0 12px; }
+  .rec p, .rec li { color: #C9BFAF; line-height: 1.7; }
+  .rec b { color: #fff; }
+  .rec .k { color: #D4AF37; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; background: #fff; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+  th, td { padding: 12px 14px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+  th { background: #F3F0EA; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  .tw { overflow-x: auto; margin: 0 0 56px; }
+  .tw table { min-width: 720px; }
+  .refs { padding: 0 0 56px; }
+  .refs ul { line-height: 1.8; color: #44403C; }
+  footer { padding: 30px 0 60px; color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); }
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <img src="../../imagens/logo.png?v=3" alt="LumiFa">
+  <div class="k" style="margin-top:26px">Prévias · 10/11/2026</div>
+  <h1>Três caminhos para um site <em>ainda mais bonito</em></h1>
+  <p>Os três modelos usam o catálogo de verdade (mesma planilha, mesmo orçamento, mesmas categorias que a Fabiana aprovou). Mudam a capa, o jeito de abrir o produto e as seções extras. O site no ar não foi alterado. Abra cada um no computador e no celular, desça a página e clique em alguns produtos.</p>
+  <div class="common">
+    <div><b>Cabeçalho que se recolhe</b>Ao descer, o menu de categorias some suavemente, a logo fica e a busca vira uma lupa. Ao voltar ao topo, tudo reaparece como hoje.</div>
+    <div><b>Produto com link próprio</b>Cada produto aberto ganha um endereço (…#produto=PROD-3745). O "voltar" do celular fecha o produto e o link pode ir pelo WhatsApp.</div>
+    <div><b>"Mais nesta categoria"</b>Dentro do produto aparecem 4 peças parecidas, para o cliente continuar olhando sem voltar à lista.</div>
+    <div><b>Faixa de diferenciais</b>Orçamento pelo WhatsApp, condições para lojistas, garantia dos fabricantes e atendimento consultivo.</div>
+    <div><b>Entrada suave</b>Seções e produtos aparecem com um leve movimento ao rolar a página (desliga sozinho para quem pede menos movimento no aparelho).</div>
+    <div><b>Rodapé completo</b>Categorias, atendimento, "Seja lojista" e atalhos para o orçamento, no lugar da linha única de hoje.</div>
+  </div>
+</div></header>
+
+<main class="wrap">
+  <section class="model">
+    <div class="mh"><span class="n">A</span><h2>Cinema</h2><span>vídeo no fundo da capa · produto em painel lateral</span></div>
+    <div class="shots">
+      <figure><img src="img/pa1.jpg" alt="Modelo A, capa com vídeo"><figcaption>Capa: vídeo em loop com as peças do catálogo, cabeçalho transparente</figcaption></figure>
+      <figure><img src="img/pa2.jpg" alt="Modelo A, produto aberto"><figcaption>Produto abre num painel à direita; o catálogo continua atrás</figcaption></figure>
+      <figure class="m"><img src="img/pa3.jpg" alt="Modelo A no celular"><figcaption>Celular, já rolado: logo + lupa</figcaption></figure>
+    </div>
+    <div class="cols">
+      <div><p>É a ideia do vídeo de fundo que vocês gostaram, adaptada para a LumiFa. Fiz o vídeo com as fotos dos próprios produtos (lustre de anéis, candelabro, arandela de cristal, pendentes…) sobre o fundo creme, com um brilho dourado e zoom lento. Ele pesa menos de 0,5 MB, então abre rápido até no 4G.</p>
+        <p>Se um dia vocês gravarem um vídeo de peças acesas num ambiente real, é só trocar o arquivo e o resto continua igual.</p></div>
+      <div><h4>Seções extras</h4><ul><li>Faixa de diferenciais</li><li>"Como funciona" em 3 passos</li><li>Área "Revenda com condições de lojista"</li><li>Novidade do catálogo flutuando sobre o vídeo</li></ul></div>
+    </div>
+    <div class="btns"><a class="btn" href="a-cinema.html">Abrir modelo A</a><a class="btn l" href="a-cinema.html#produto=PROD-3745">Abrir já com um produto</a></div>
+  </section>
+
+  <section class="model">
+    <div class="mh"><span class="n">B</span><h2>Galeria</h2><span>capa editorial em arco · produto em página inteira <span class="tag">minha preferida</span></span></div>
+    <div class="shots">
+      <figure><img src="img/pb1.jpg" alt="Modelo B, capa em arco"><figcaption>Capa: produto em destaque dentro de um arco, com duas peças flutuando</figcaption></figure>
+      <figure><img src="img/pb2.jpg" alt="Modelo B, página do produto"><figcaption>Produto em tela inteira, com "Voltar ao catálogo" sempre à vista</figcaption></figure>
+      <figure class="m"><img src="img/pb3.jpg" alt="Modelo B no celular"><figcaption>Celular: o arco vem primeiro</figcaption></figure>
+    </div>
+    <div class="cols">
+      <div><p>O mais "revista de decoração": muito respiro, a forma de arco lembra uma cúpula e combina com o estilo Ateliê. As peças da capa trocam sozinhas a cada 7 segundos (como hoje), sempre com novidades.</p>
+        <p>O produto abre como uma página de verdade: foto grande à esquerda que fica parada enquanto se lê a ficha técnica à direita. É o formato que passa mais confiança para lojista e arquiteto.</p></div>
+      <div><h4>Seções extras</h4><ul><li>Faixa de diferenciais</li><li>"Luz em movimento": os Reels do Instagram tocando no site (só quando aparecem na tela)</li><li>Área para lojistas</li></ul></div>
+    </div>
+    <div class="btns"><a class="btn" href="b-galeria.html">Abrir modelo B</a><a class="btn l" href="b-galeria.html#produto=PROD-3745">Abrir já com um produto</a></div>
+  </section>
+
+  <section class="model">
+    <div class="mh"><span class="n">C</span><h2>Vitrine</h2><span>capa escura com "holofote" · cards que acendem</span></div>
+    <div class="shots">
+      <figure><img src="img/pc1.jpg" alt="Modelo C, capa escura"><figcaption>Capa: fundo preto, peça iluminada por um círculo de luz dourada</figcaption></figure>
+      <figure><img src="img/pc2.jpg" alt="Modelo C, produto"><figcaption>Produto na janela central (como hoje), maior e com relacionados</figcaption></figure>
+      <figure class="m"><img src="img/pc3.jpg" alt="Modelo C no celular"><figcaption>Celular: a peça "acesa" vem primeiro</figcaption></figure>
+    </div>
+    <div class="cols">
+      <div><p>O mais dramático: a capa preta faz a peça parecer acesa numa vitrine à noite. Nos produtos, ao passar o mouse, a foto ganha um brilho quente e o card sobe um pouco, como se a luminária acendesse.</p>
+        <p>O resto da página continua claro, então a regra de abrir sempre no modo claro está respeitada.</p></div>
+      <div><h4>Seções extras</h4><ul><li>Faixa de diferenciais</li><li>"Como funciona" em 3 passos</li><li>Reels do Instagram</li></ul></div>
+    </div>
+    <div class="btns"><a class="btn" href="c-vitrine.html">Abrir modelo C</a><a class="btn l" href="c-vitrine.html#produto=PROD-3745">Abrir já com um produto</a></div>
+  </section>
+
+  <section class="rec">
+    <div class="k">Sobre abrir o produto em janela nova</div>
+    <h2>Minha recomendação: não abrir aba nova</h2>
+    <p>Aba nova costuma atrapalhar num catálogo como o de vocês:</p>
+    <ul>
+      <li><b>No celular</b>, a maioria nem percebe que abriu outra aba. O cliente "perde" o catálogo e acha que o orçamento sumiu.</li>
+      <li><b>Quem compara 10 ou 20 peças</b> acaba com 20 abas abertas e desiste.</li>
+      <li>O <b>Meu Orçamento</b> funciona melhor numa tela só.</li>
+    </ul>
+    <p>O que os três modelos fazem é <b>abrir o produto dentro do site, mas com endereço próprio</b>. Com isso o cliente tem o melhor dos dois lados: pode mandar o link de um produto pelo WhatsApp, o botão "voltar" do celular fecha o produto e ele cai exatamente onde estava na lista.</p>
+    <p>Entre as três formas, a <b>página inteira (B)</b> é a que mais passa cara de "site profissional". O <b>painel lateral (A)</b> é o mais rápido para quem compara muitas peças. A <b>janela central (C)</b> é a de hoje, melhorada.</p>
+  </section>
+
+  <div class="tw"><table>
+    <tr><th></th><th>A · Cinema</th><th>B · Galeria</th><th>C · Vitrine</th></tr>
+    <tr><td><b>Primeira impressão</b></td><td>Movimento (vídeo)</td><td>Elegância, respiro</td><td>Impacto, contraste</td></tr>
+    <tr><td><b>Abrir produto</b></td><td>Painel lateral</td><td>Página inteira</td><td>Janela central</td></tr>
+    <tr><td><b>Peso da capa</b></td><td>+0,5 MB (vídeo)</td><td>Só fotos</td><td>Só fotos</td></tr>
+    <tr><td><b>Instagram no site</b></td><td>Não</td><td>Sim (Reels)</td><td>Sim (Reels)</td></tr>
+    <tr><td><b>Área de lojistas</b></td><td>Sim</td><td>Sim</td><td>Não (dá para incluir)</td></tr>
+  </table></div>
+
+  <section class="refs">
+    <div class="k">De onde vieram as ideias</div>
+    <h2 style="font-size:32px;margin:10px 0 12px">Inspiração, sem cópia</h2>
+    <ul>
+      <li><b>Nobre Luminárias</b>: vídeo de fundo e caminho claro para lojista → aqui o vídeo é feito com as nossas próprias peças e a área de lojista usa o WhatsApp da LumiFa.</li>
+      <li><b>Lojas de design internacionais</b>: produto com página própria, botão "Inquire" (pedir orçamento) em vez de "comprar" e variações de cor no card → a LumiFa já tinha as variações; agora o produto ganhou link e relacionados.</li>
+      <li><b>Sites de moda e decoração</b>: cabeçalho que se recolhe e busca em lupa ao rolar.</li>
+      <li>Nenhum texto, foto, logo ou layout de outra empresa foi usado. Textos, vídeo e formas foram criados para a LumiFa.</li>
+    </ul>
+  </section>
+</main>
+<footer><div class="wrap">Prévias de layout · não indexadas no Google · o site no ar continua em <a href="../../">lumifabr.github.io</a></div></footer>
+</body>
+</html>
