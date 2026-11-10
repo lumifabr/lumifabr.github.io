@@ -266,7 +266,7 @@
   .wa-fab { position: fixed; right: 20px; bottom: 20px; z-index: 60; width: 56px; height: 56px; border-radius: 50%; background: var(--wa); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 28px; text-decoration: none; box-shadow: 0 12px 28px rgba(18,140,74,.35); }
   @media (max-width: 640px) { .wa-fab { bottom: 72px; width: 52px; height: 52px; } }
 </style>
-<link rel="stylesheet" href="v2.css?v=1">
+<link rel="stylesheet" href="v2.css?v=2">
 <script>
   // pele escolhida (?pele=loja ou atelie) — vale durante a visita
   // visual definido: Ateliê
@@ -336,12 +336,14 @@
           <div class="tools">
             <button class="fbtn" onclick="document.body.classList.add('filters-open')"><i class="fa-solid fa-sliders"></i> Filtros <em data-fcount></em></button>
             <select data-sort aria-label="Ordenar"><option value="default">Mais relevantes</option><option value="new">Lançamentos</option><option value="priceAsc">Menor preço</option><option value="priceDesc">Maior preço</option><option value="name">Nome A–Z</option></select>
+            <label class="per"><span>Mostrar</span><select data-per aria-label="Produtos por página"><option value="50">50</option><option value="100">100</option><option value="150">150</option><option value="all">Todos</option></select></label>
             <div class="view"><button class="is-on" data-view="grid" aria-label="Ver em blocos" title="Blocos"><i class="fa-solid fa-grip"></i></button><button data-view="list" aria-label="Ver em lista" title="Lista"><i class="fa-solid fa-list"></i></button></div>
           </div>
         </div>
         <div data-applied hidden></div>
         <div class="grid" data-grid><div class="skel" data-skeleton style="height:400px"></div><div class="skel" data-skeleton style="height:400px"></div><div class="skel" data-skeleton style="height:400px"></div></div>
         <div class="empty" data-empty hidden><h3>Nenhum produto encontrado</h3><p>Revise os filtros ou busque pelo código.</p><button data-reset>Limpar filtros</button></div>
+        <nav class="pager" data-pager hidden aria-label="Páginas"></nav>
         <div class="more" data-more hidden><button data-more-btn>Carregar mais produtos</button></div>
       </section>
     </div>
@@ -380,7 +382,7 @@
   <a class="wa-fab" href="https://wa.me/5511959781849?text=Ol%C3%A1!%20Vim%20pelo%20cat%C3%A1logo%20da%20LumiFa." target="_blank" rel="noopener" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-<script src="../../assets/motor.js?v=20261106b"></script>
+<script src="../../assets/motor.js?v=20261110a"></script>
 <script>
 function closeFilters() { document.body.classList.remove('filters-open'); }
 // fecha os filtros clicando fora do painel ou apertando Esc
@@ -419,13 +421,13 @@ const card = (it, H) => {
       <div class="cprice">${H.from(it) ? '<small>a partir de</small>' : ''}<b>${H.priceLabel(it.price)}</b>${it.price > 0 ? '<small>un.</small>' : ''}</div>
       <div class="buy">${it.isGroup
         ? `<button class="addbtn alt" data-open="${H.esc(it.code)}"><i class="fa-solid fa-swatchbook"></i> Escolher opção</button>`
-        : `<div class="stepper"><button type="button" onclick="this.nextElementSibling.value=Math.max(1,+this.nextElementSibling.value-1)">−</button><input type="number" min="1" value="1" aria-label="Quantidade"><button type="button" onclick="this.previousElementSibling.value=+this.previousElementSibling.value+1">+</button></div><button class="addbtn" data-qty-add="${H.esc(it.code)}"><i class="fa-solid fa-plus"></i> Orçar</button>`}
+        : `<div class="stepper"><button type="button" onclick="this.nextElementSibling.value=Math.max(1,+this.nextElementSibling.value-1)">−</button><input type="number" min="1" value="1" aria-label="Quantidade"><button type="button" onclick="this.previousElementSibling.value=+this.previousElementSibling.value+1">+</button></div><button class="addbtn" data-qty-add="${H.esc(it.code)}"><i class="fa-solid fa-plus"></i> Cotar</button>`}
       </div>
     </div>
   </article>`;
 };
 Motor.init({
-  id: 'site', root: '../../', demo: false, logo: 'lumifa', theme: 'auto', brandName: 'LumiFa Iluminação',
+  id: 'site', root: '../../', paged: true, demo: false, logo: 'lumifa', theme: 'auto', brandName: 'LumiFa Iluminação',
   headerOffset: () => document.querySelector('header.main').offsetHeight + 12,
   scrollOnCat: 'always', scrollAnchor: '#produtos',
   catTemplates: {
@@ -503,6 +505,6 @@ Motor.init({
   }
 });
 </script>
-<script src="v2.js?v=1"></script>
+<script src="v2.js?v=2"></script>
 </body>
 </html>

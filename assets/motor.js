@@ -295,8 +295,38 @@
     renderCats(); renderFacets(); renderApplied();
     $$('[data-search]').forEach(i => { if (i !== document.activeElement) i.value = S.q; });
     $$('[data-sort]').forEach(sel => sel.value = S.sort);
-    more();
+    if (paged()) { S.page = 1; paint(); } else { const pg = $('[data-pager]'); if (pg) pg.hidden = true; more(); }
     if (S.opts.onRender) S.opts.onRender(S.list);
+  }
+  // ---- paginação (opcional: Motor.init({ paged: true })) — 50 / 100 / 150 por página ou "todos" (rolagem contínua)
+  function paged() { return !!S.opts.paged && S.per !== 'all'; }
+  function paint() {
+    const grid = $(S.opts.grid || '[data-grid]'); if (!grid) return;
+    const per = +S.per || 50, pages = Math.max(1, Math.ceil(S.list.length / per));
+    S.page = Math.min(Math.max(1, S.page || 1), pages);
+    const a = (S.page - 1) * per, b = Math.min(S.list.length, a + per);
+    grid.innerHTML = S.list.slice(a, b).map(it => S.opts.card(view(it), H)).join('');
+    S.rendered = b;
+    const sent = $('[data-more]'); if (sent) sent.hidden = true;
+    if (S.list.length) $$('[data-count]').forEach(el => el.textContent = `Mostrando ${(a + 1).toLocaleString('pt-BR')}–${b.toLocaleString('pt-BR')} de ${S.list.length.toLocaleString('pt-BR')} produtos` + (S.cat !== 'Todos' ? ` em ${S.cat}` : ''));
+    const pg = $('[data-pager]'); if (!pg) return;
+    pg.hidden = pages <= 1;
+    const nums = [...new Set([1, S.page - 1, S.page, S.page + 1, pages].filter(n => n >= 1 && n <= pages))].sort((x, y) => x - y);
+    let html = `<button type="button" data-page="${S.page - 1}" ${S.page === 1 ? 'disabled' : ''} aria-label="Página anterior"><i class="fa-solid fa-chevron-left"></i><span> Anterior</span></button>`, last = 0;
+    nums.forEach(n => { if (n - last > 1) html += '<span class="pg-gap">…</span>'; html += `<button type="button" data-page="${n}" class="${n === S.page ? 'is-on' : ''}" ${n === S.page ? 'aria-current="page"' : ''}>${n}</button>`; last = n; });
+    html += `<button type="button" data-page="${S.page + 1}" ${S.page === pages ? 'disabled' : ''} aria-label="Próxima página"><span>Próxima </span><i class="fa-solid fa-chevron-right"></i></button>`;
+    pg.innerHTML = html;
+  }
+  function goPage(n) {
+    S.page = n; paint();
+    const anchor = $(S.opts.scrollAnchor || '[data-results]');
+    if (anchor) window.scrollTo({ top: anchor.getBoundingClientRect().top + window.scrollY - (S.opts.headerOffset ? S.opts.headerOffset() : 90), behavior: 'smooth' });
+  }
+  function setPer(v) {
+    S.per = v === 'all' ? 'all' : (+v || 50);
+    try { sessionStorage.setItem('lumifa_per', String(S.per)); } catch (_) {}
+    $$('[data-per]').forEach(sel => sel.value = String(S.per));
+    render();
   }
   function more() {
     const grid = $(S.opts.grid || '[data-grid]');
@@ -859,6 +889,7 @@
     document.addEventListener('change', e => {
       const el = e.target;
       if (el.matches('[data-sort]')) { S.sort = el.value; render(); }
+      if (el.matches('[data-per]')) setPer(el.value);
       if (el.matches('[data-facet]')) {
         const f = el.dataset.facet;
         if (f === 'price') S.price = el.value;
@@ -876,7 +907,7 @@
         else setArchived((ed.dataset.edArch || ed.dataset.edUnarch).split(',').filter(Boolean), ed.hasAttribute('data-ed-arch'));
         return;
       }
-      const el = e.target.closest('[data-cat],[data-open],[data-add],[data-open-cart],[data-theme-toggle],[data-unset],[data-reset],[data-more-btn],[data-set-cat],[data-qty-add],[data-scroll-top],[data-sort-btn]');
+      const el = e.target.closest('[data-page],[data-cat],[data-open],[data-add],[data-open-cart],[data-theme-toggle],[data-unset],[data-reset],[data-more-btn],[data-set-cat],[data-qty-add],[data-scroll-top],[data-sort-btn]');
       if (!el) return;
       if (el.hasAttribute('data-cat')) { if (el.closest('[data-cats]') && el.closest('[data-cats]').dragged) return; setCat(el.dataset.cat); }
       else if (el.hasAttribute('data-set-cat')) setCat(el.dataset.setCat);
@@ -893,6 +924,7 @@
       }
       else if (el.hasAttribute('data-reset')) reset();
       else if (el.hasAttribute('data-more-btn')) more();
+      else if (el.hasAttribute('data-page')) { if (!el.disabled) goPage(+el.dataset.page); }
       else if (el.hasAttribute('data-sort-btn')) { S.sort = el.dataset.sortBtn; render(); }
       else if (el.hasAttribute('data-scroll-top')) window.scrollTo({ top: 0, behavior: 'smooth' });
     });
@@ -912,7 +944,7 @@
     window.addEventListener('scroll', () => { const b = $('#m-top'); if (b) b.classList.toggle('is-on', window.scrollY > 700); }, { passive: true });
     if ('IntersectionObserver' in window) {
       const sent = $('[data-more]');
-      if (sent) new IntersectionObserver(en => { if (en.some(x => x.isIntersecting) && S.rendered < S.list.length) more(); }, { rootMargin: '1200px 0px' }).observe(sent);
+      if (sent) new IntersectionObserver(en => { if (!paged() && en.some(x => x.isIntersecting) && S.rendered < S.list.length) more(); }, { rootMargin: '1200px 0px' }).observe(sent);
     }
     // arrastar carrosséis de categoria com o mouse
     $$('[data-cats][data-drag]').forEach(box => {
@@ -946,6 +978,7 @@
       S.opts = opts || {};
       if (opts.root) CFG.root = opts.root;
       if (opts.pageSize) CFG.pageSize = opts.pageSize;
+      if (opts.paged) { let v = null; try { v = sessionStorage.getItem('lumifa_per'); } catch (_) {} S.per = v === 'all' ? 'all' : (+v || opts.perPage || 50); }
       const qp = new URLSearchParams(location.search);
       S.logo = qp.get('logo') || store.get('modelos_logo', null, true) || opts.logo || 'duo';
       const savedTheme = store.get('modelos_tema_' + (opts.id || ''), null, true);
@@ -953,9 +986,10 @@
       if (th === 'auto') { const ua = navigator.userAgent || ''; const phone = /Android|iPhone|iPad|iPod|Mobile/i.test(ua); th = phone && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; }
       setTheme(savedTheme || th, false);
       if (opts.brandName) CFG.brandName = opts.brandName;
-      const go = () => { injectShell(); demoBar(); renderBrand(); bind(); load(); };
+      const go = () => { injectShell(); demoBar(); renderBrand(); bind(); load(); if (opts.paged) $$('[data-per]').forEach(sel => sel.value = String(S.per)); };
       document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', go) : go();
     },
+    page: goPage, perPage: setPer,
     open: openProduct, pick, step, zoom, go, gDrop, close, add, setQty, clearCart, sendWhatsApp, teamLogout, setCat, reset, render,
     edit: openEditor, saveEdit, configEditor, archive: c => setArchived([].concat(c), true), unarchive: c => setArchived([].concat(c), false), archView: toggleArchView,
     get state() { return S; }, H, CFG, filtered, categories,

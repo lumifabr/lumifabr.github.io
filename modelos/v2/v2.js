@@ -5,6 +5,10 @@
    4) entrada suave das seções, vídeo da capa, barra para trocar de modelo */
 (function () {
   const root = document.documentElement;
+  // sempre abrir no topo (o celular tentava "lembrar" a posição e caía no meio da lista)
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+  const topo = () => { if (!/^#produto=/i.test(location.hash)) window.scrollTo(0, 0); };
+  topo(); addEventListener('load', topo); addEventListener('pageshow', e => { if (!e.persisted) topo(); });
   const MODELO = root.dataset.modelo;
   const $ = (s, el = document) => el.querySelector(s);
   const $$ = (s, el = document) => [...el.querySelectorAll(s)];
@@ -76,14 +80,8 @@
     }
     relacionados();
     const panel = $('#m-product .m-panel'); if (panel) panel.scrollTop = 0;
-    if (MODELO === 'b') {
-      const t = $('#m-product .m-title'), cat = $('#m-product .m-cat');
-      $('.v2-back .crumb').textContent = (cat ? cat.textContent + ' · ' : '') + (t ? t.textContent : '');
-      document.body.style.overflow = 'hidden';
-    }
   }
   function aoFechar() {
-    if (MODELO === 'b') document.body.style.overflow = '';
     if (HASH.test(location.hash)) {
       if (history.state && history.state.v2p && !abertoPorHash) history.back();
       else history.replaceState(null, '', location.pathname + location.search);
@@ -93,7 +91,22 @@
   function ligarProduto() {
     layer = document.getElementById('m-product');
     if (!layer) return setTimeout(ligarProduto, 200);
-    if (MODELO === 'b') layer.insertAdjacentHTML('afterbegin', `<div class="v2-back"><div class="wrap"><button type="button" onclick="Motor.close('#m-product')"><i class="fa-solid fa-arrow-left"></i> Voltar ao catálogo</button><span class="crumb"></span></div></div>`);
+    // botão "Voltar" (celular) no produto e no orçamento
+    const panel = $('.m-panel', layer);
+    if (panel) panel.insertAdjacentHTML('afterbegin', `<button type="button" class="v2-voltar v2-pvoltar" onclick="Motor.close('#m-product')"><i class="fa-solid fa-arrow-left"></i> Voltar ao catálogo</button>`);
+    const cart = document.getElementById('m-cart');
+    if (cart) {
+      const ch = $('.c-head', cart);
+      if (ch) ch.insertAdjacentHTML('afterbegin', `<button type="button" class="v2-voltar" onclick="Motor.close('#m-cart')"><i class="fa-solid fa-arrow-left"></i> Voltar</button>`);
+      // o "voltar" do próprio celular também fecha o orçamento
+      let cAberto = false;
+      new MutationObserver(() => {
+        const agora = cart.classList.contains('is-open');
+        if (agora && !cAberto) history.pushState({ v2c: 1 }, '', location.pathname + location.search + '#orcamento');
+        if (!agora && cAberto && location.hash === '#orcamento') history.back();
+        cAberto = agora;
+      }).observe(cart, { attributes: true, attributeFilter: ['class'] });
+    }
     let aberto = false, ultimo = '';
     new MutationObserver(() => {
       const agora = layer.classList.contains('is-open');
@@ -110,6 +123,8 @@
     });
   }
   addEventListener('popstate', () => {
+    const cart = document.getElementById('m-cart');
+    if (cart && cart.classList.contains('is-open') && location.hash !== '#orcamento') { Motor.close('#m-cart'); return; }
     if (layer && layer.classList.contains('is-open') && !HASH.test(location.hash)) Motor.close('#m-product');
     else abrirDoHash();
   });
@@ -119,7 +134,17 @@
   }
   ligarProduto();
   // espera o catálogo carregar para abrir o produto do link
-  (function esperar(n) { if (window.Motor && Motor.state.items && Motor.state.items.length) abrirDoHash(); else if (n < 100) setTimeout(() => esperar(n + 1), 150); })(0);
+  const fotosOk = () => window.Motor && Motor.state.fotos && Object.keys(Motor.state.fotos).length > 0;
+  (function esperar(n) { if (window.Motor && Motor.state.items && Motor.state.items.length && (fotosOk() || n > 40)) abrirDoHash(); else if (n < 100) setTimeout(() => esperar(n + 1), 150); })(0);
+  // se um produto foi aberto antes da lista de fotos chegar, reabre com a ficha técnica
+  (function fichas(n) {
+    if (fotosOk()) {
+      const code = codigoAberto();
+      if (layer && layer.classList.contains('is-open') && code && Motor.state.gal && Motor.state.gal.length === 1 && Motor.state.fotos[code]) Motor.open(code);
+      return;
+    }
+    if (n < 80) setTimeout(() => fichas(n + 1), 250);
+  })(0);
 
   // ---------- 4. Revelar seções ----------
   const io = 'IntersectionObserver' in window ? new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { rootMargin: '0px 0px -8% 0px' }) : null;

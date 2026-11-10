@@ -1,0 +1,42 @@
+# Cria a "ficha técnica" (2ª foto) dos produtos que ainda não têm, a partir da planilha.
+# Roda sozinho todo dia e também quando o gerador muda. Também dá para rodar à mão (Actions > Fichas técnicas > Run workflow).
+name: Fichas técnicas
+on:
+  schedule:
+    - cron: '17 9 * * *'
+  push:
+    branches: [main]
+    paths: ['.github/scripts/fichas/**', '.github/workflows/fichas.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: galeria
+  cancel-in-progress: false
+jobs:
+  fichas:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - run: pip install pillow
+      - name: Baixar a planilha (CSV publicado)
+        run: |
+          URL=$(grep -oE 'https://docs.google.com/spreadsheets/d/e/[^"]+output=csv' assets/motor.js | head -1)
+          curl -sSL "$URL" -o /tmp/planilha.csv
+          head -c 200 /tmp/planilha.csv
+      - name: Gerar fichas que faltam
+        run: python .github/scripts/fichas/gerar_fichas.py /tmp/planilha.csv .
+      - name: Atualizar fotos.json
+        run: python .github/scripts/fotos_json.py galeria fotos.json
+      - name: Salvar no repositório
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add galeria fotos.json
+          if git diff --cached --quiet; then echo "Nenhuma ficha nova."; exit 0; fi
+          git commit -m "Fichas técnicas automáticas"
+          git pull --rebase origin main
+          git push

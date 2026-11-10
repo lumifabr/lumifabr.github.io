@@ -64,7 +64,7 @@ MODELS = {
               after_hero=STRIP, before_band=STEPS + LOJISTA),
     'b': dict(file='b-galeria.html', nome='Galeria',
               h1='Iluminação com <em>olhar de ateliê</em>',
-              hero_top='', after_hero=STRIP, before_band=REELS + LOJISTA),
+              hero_top='', after_hero=STRIP + STEPS, before_band=REELS + LOJISTA),
     'c': dict(file='c-vitrine.html', nome='Vitrine',
               h1='Peças que <em>acendem</em> o ambiente',
               hero_top='', after_hero=STRIP, before_band=STEPS + REELS),
@@ -76,7 +76,7 @@ def build(k, m):
     h = re.sub(r'<title>.*?</title>', f'<title>Modelo {k.upper()} · {m["nome"]} (prévia) | LumiFa Iluminação</title>\n  <meta name="robots" content="noindex">', h, count=1)
     h = h.replace('href="imagens/', 'href="../../imagens/')
     h = re.sub(r'(href|src)="assets/', r'\1="../../assets/', h)
-    h = h.replace('</style>\n<script>', '</style>\n<link rel="stylesheet" href="v2.css?v=1">\n<script>', 1)
+    h = h.replace('</style>\n<script>', '</style>\n<link rel="stylesheet" href="v2.css?v=2">\n<script>', 1)
     h = h.replace('<a href="./" class="brand"', f'<a href="{m["file"]}" class="brand"')
     # capa
     h = h.replace('<section class="hero"><div class="wrap hero-in">', f'<section class="hero">{m["hero_top"]}<div class="wrap hero-in">', 1)
@@ -88,9 +88,15 @@ def build(k, m):
     h = h.replace('  <section class="band">', m['before_band'] + '\n\n  <section class="band" data-reveal>', 1)
     # rodapé novo
     h = re.sub(r'<footer>.*?</footer>', FOOT.replace('{self}', m['file']), h, count=1, flags=re.S)
-    h = h.replace("root: './'", "root: '../../'")
-    h = h.replace('</body>', '<script src="v2.js?v=1"></script>\n</body>')
-    assert 'data-hero-art' in h and "root: '../../'" in h and 'v2.js' in h and 'v2-foot' in h, k
+    h = re.sub(r'motor\.js\?v=\w+', 'motor.js?v=20261110a', h)
+    h = h.replace("root: './'", "root: '../../', paged: true")
+    # botão do card: "Cotar"
+    h = h.replace('<i class="fa-solid fa-plus"></i> Orçar</button>', '<i class="fa-solid fa-plus"></i> Cotar</button>')
+    # produtos por página + paginação
+    h = h.replace('<div class="view">', '<label class="per"><span>Mostrar</span><select data-per aria-label="Produtos por página"><option value="50">50</option><option value="100">100</option><option value="150">150</option><option value="all">Todos</option></select></label>\n            <div class="view">', 1)
+    h = h.replace('<div class="more" data-more hidden>', '<nav class="pager" data-pager hidden aria-label="Páginas"></nav>\n        <div class="more" data-more hidden>', 1)
+    h = h.replace('</body>', '<script src="v2.js?v=2"></script>\n</body>')
+    assert 'data-pager' in h and 'Cotar' in h and 'data-per' in h and 'data-hero-art' in h and "root: '../../'" in h and 'v2.js' in h and 'v2-foot' in h, k
     (SITE / 'modelos/v2' / m['file']).write_text(h)
     print('ok', m['file'], len(h))
 
