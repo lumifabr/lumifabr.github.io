@@ -8,7 +8,7 @@ WA = 'https://wa.me/5511959781849?text='
 STRIP = '''
   <section class="v2-strip"><div class="wrap"><ul>
     <li><i class="fa-brands fa-whatsapp"></i><span><b>Orçamento pelo WhatsApp</b>Monte a lista e envie em um clique</span></li>
-    <li><i class="fa-solid fa-store"></i><span><b>Condições para lojistas</b>Preços e prazos especiais para CNPJ</span></li>
+    <li><i class="fa-regular fa-file-lines"></i><span><b>Ficha técnica completa</b>Fotos e detalhes de cada peça</span></li>
     <li><i class="fa-solid fa-shield-halved"></i><span><b>Garantia dos fabricantes</b>Produtos de marcas selecionadas</span></li>
     <li><i class="fa-regular fa-lightbulb"></i><span><b>Atendimento consultivo</b>Ajuda para escolher a luz certa</span></li>
   </ul></div></section>'''
@@ -51,7 +51,7 @@ FOOT = f'''<footer class="v2-foot"><div class="wrap">
     <div class="fgrid">
       <div><a href="{{self}}" class="brand" data-brand data-dark></a><p>Catálogo de iluminação decorativa e LED. Escolha, monte seu orçamento e fale com nossa especialista.</p></div>
       <div><h4>Categorias</h4><button class="lk" data-set-cat="Pendentes">Pendentes</button><button class="lk" data-set-cat="Lustres">Lustres</button><button class="lk" data-set-cat="Arandelas">Arandelas</button><button class="lk" data-set-cat="Painéis de LED">Painéis de LED</button><button class="lk" data-set-cat="Spots">Spots</button></div>
-      <div><h4>Atendimento</h4><a href="{WA}Ol%C3%A1!%20Vim%20pelo%20cat%C3%A1logo%20da%20LumiFa." target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i> (11) 95978-1849</a><a href="https://www.instagram.com/lumifa.br/" target="_blank" rel="noopener"><i class="fa-brands fa-instagram"></i> @lumifa.br</a><a href="{WA}Ol%C3%A1!%20Tenho%20uma%20loja%20e%20quero%20conhecer%20as%20condi%C3%A7%C3%B5es%20para%20lojistas." target="_blank" rel="noopener">Seja lojista</a></div>
+      <div><h4>Atendimento</h4><a href="{WA}Ol%C3%A1!%20Vim%20pelo%20cat%C3%A1logo%20da%20LumiFa." target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i> (11) 95978-1849</a><a href="https://www.instagram.com/lumifa.br/" target="_blank" rel="noopener"><i class="fa-brands fa-instagram"></i> @lumifa.br</a></div>
       <div><h4>Catálogo</h4><button class="lk" data-open-cart>Meu orçamento</button><button class="lk" data-reset>Todos os produtos</button><button class="lk" data-scroll-top>Voltar ao topo</button></div>
     </div>
     <div class="fbase"><span>© <span data-year></span> LumiFa Iluminação. Imagens meramente ilustrativas.</span><span>Valores sujeitos a confirmação de estoque e condições comerciais.</span></div>
@@ -89,6 +89,9 @@ def build(k, m):
     # rodapé novo
     h = re.sub(r'<footer>.*?</footer>', FOOT.replace('{self}', m['file']), h, count=1, flags=re.S)
     h = re.sub(r'motor\.js\?v=\w+', 'motor.js?v=20261110a', h)
+    # sem programa para lojistas
+    h = h.replace('<li><i class="fa-solid fa-store"></i>Condições especiais para lojistas</li>', '<li><i class="fa-regular fa-file-lines"></i>Fotos e ficha técnica de cada produto</li>')
+    h = h.replace('prazos e condições para lojistas, arquitetos e consumidores', 'prazos e condições de pagamento')
     h = h.replace("root: './'", "root: '../../', paged: true")
     # botão do card: "Cotar"
     h = h.replace('<i class="fa-solid fa-plus"></i> Orçar</button>', 'Cotar</button>')
