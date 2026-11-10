@@ -76,7 +76,7 @@ def build(k, m):
     h = re.sub(r'<title>.*?</title>', f'<title>Modelo {k.upper()} · {m["nome"]} (prévia) | LumiFa Iluminação</title>\n  <meta name="robots" content="noindex">', h, count=1)
     h = h.replace('href="imagens/', 'href="../../imagens/')
     h = re.sub(r'(href|src)="assets/', r'\1="../../assets/', h)
-    h = h.replace('</style>\n<script>', '</style>\n<link rel="stylesheet" href="v2.css?v=2">\n<script>', 1)
+    h = h.replace('</style>\n<script>', '</style>\n<link rel="stylesheet" href="v2.css?v=3">\n<script>', 1)
     h = h.replace('<a href="./" class="brand"', f'<a href="{m["file"]}" class="brand"')
     # capa
     h = h.replace('<section class="hero"><div class="wrap hero-in">', f'<section class="hero">{m["hero_top"]}<div class="wrap hero-in">', 1)
@@ -91,7 +91,7 @@ def build(k, m):
     h = re.sub(r'motor\.js\?v=\w+', 'motor.js?v=20261110a', h)
     h = h.replace("root: './'", "root: '../../', paged: true")
     # botão do card: "Cotar"
-    h = h.replace('<i class="fa-solid fa-plus"></i> Orçar</button>', '<i class="fa-solid fa-plus"></i> Cotar</button>')
+    h = h.replace('<i class="fa-solid fa-plus"></i> Orçar</button>', 'Cotar</button>')
     # produtos por página + paginação
     h = h.replace('<div class="view">', '<label class="per"><span>Mostrar</span><select data-per aria-label="Produtos por página"><option value="50">50</option><option value="100">100</option><option value="150">150</option><option value="all">Todos</option></select></label>\n            <div class="view">', 1)
     h = h.replace('<div class="more" data-more hidden>', '<nav class="pager" data-pager hidden aria-label="Páginas"></nav>\n        <div class="more" data-more hidden>', 1)

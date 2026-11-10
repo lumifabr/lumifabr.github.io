@@ -266,7 +266,7 @@
   .wa-fab { position: fixed; right: 20px; bottom: 20px; z-index: 60; width: 56px; height: 56px; border-radius: 50%; background: var(--wa); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 28px; text-decoration: none; box-shadow: 0 12px 28px rgba(18,140,74,.35); }
   @media (max-width: 640px) { .wa-fab { bottom: 72px; width: 52px; height: 52px; } }
 </style>
-<link rel="stylesheet" href="v2.css?v=2">
+<link rel="stylesheet" href="v2.css?v=3">
 <script>
   // pele escolhida (?pele=loja ou atelie) — vale durante a visita
   // visual definido: Ateliê
@@ -421,7 +421,7 @@ const card = (it, H) => {
       <div class="cprice">${H.from(it) ? '<small>a partir de</small>' : ''}<b>${H.priceLabel(it.price)}</b>${it.price > 0 ? '<small>un.</small>' : ''}</div>
       <div class="buy">${it.isGroup
         ? `<button class="addbtn alt" data-open="${H.esc(it.code)}"><i class="fa-solid fa-swatchbook"></i> Escolher opção</button>`
-        : `<div class="stepper"><button type="button" onclick="this.nextElementSibling.value=Math.max(1,+this.nextElementSibling.value-1)">−</button><input type="number" min="1" value="1" aria-label="Quantidade"><button type="button" onclick="this.previousElementSibling.value=+this.previousElementSibling.value+1">+</button></div><button class="addbtn" data-qty-add="${H.esc(it.code)}"><i class="fa-solid fa-plus"></i> Cotar</button>`}
+        : `<div class="stepper"><button type="button" onclick="this.nextElementSibling.value=Math.max(1,+this.nextElementSibling.value-1)">−</button><input type="number" min="1" value="1" aria-label="Quantidade"><button type="button" onclick="this.previousElementSibling.value=+this.previousElementSibling.value+1">+</button></div><button class="addbtn" data-qty-add="${H.esc(it.code)}">Cotar</button>`}
       </div>
     </div>
   </article>`;
