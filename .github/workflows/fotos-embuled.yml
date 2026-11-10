@@ -1,5 +1,7 @@
 # Baixa fotos extras dos produtos Embuled do site da fábrica (embuled.com).
 # Roda só quando você manda (aba Actions > "Fotos Embuled" > Run workflow).
+# ATENÇÃO: produtos.csv (códigos da Embuled) foi tirado do repositório público em 10/11/2026.
+# Para rodar de novo, gerar o arquivo a partir do Banco_de_Dados só na hora e apagar depois.
 # As fotos NÃO vão para o site: ficam no branch "fotos-embuled" para revisão.
 # Fotos com o nome EMBULED são descartadas automaticamente.
 name: Fotos Embuled
