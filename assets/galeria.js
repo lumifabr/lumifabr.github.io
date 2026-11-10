@@ -176,7 +176,7 @@
   }
 
   // ---------- Barra para trocar de modelo (só nas prévias) ----------
-  if (!new URLSearchParams(location.search).has('limpo')) {
+  if (/\/modelos\//.test(location.pathname) && !new URLSearchParams(location.search).has('limpo')) {
     const q = location.search;
     const M = [['a', 'A · Cinema'], ['b', 'B · Galeria'], ['c', 'C · Vitrine']];
     const files = { a: 'a-cinema.html', b: 'b-galeria.html', c: 'c-vitrine.html' };

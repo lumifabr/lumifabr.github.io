@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- Catálogo LumiFa — layout "Ateliê" (31/10/2026). Motor em assets/motor.js; versão anterior em index-antigo.html -->
-<html lang="pt-BR" data-skin="atelie">
+<html lang="pt-BR" data-skin="atelie" data-modelo="b">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -265,6 +265,7 @@
   .wa-fab { position: fixed; right: 20px; bottom: 20px; z-index: 60; width: 56px; height: 56px; border-radius: 50%; background: var(--wa); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 28px; text-decoration: none; box-shadow: 0 12px 28px rgba(18,140,74,.35); }
   @media (max-width: 640px) { .wa-fab { bottom: 72px; width: 52px; height: 52px; } }
 </style>
+<link rel="stylesheet" href="assets/galeria.css?v=4">
 <script>
   // pele escolhida (?pele=loja ou atelie) — vale durante a visita
   // visual definido: Ateliê
@@ -292,7 +293,7 @@
   <section class="hero"><div class="wrap hero-in">
     <div>
       <span class="eyebrow">Catálogo de iluminação</span>
-      <h1>A luz certa para <em>cada projeto</em></h1>
+      <h1>Iluminação com <em>olhar de ateliê</em></h1>
       <p>Pendentes, lustres, arandelas, spots e soluções em LED de fabricantes selecionados. Escolha os produtos, monte seu orçamento e receba o atendimento de uma especialista em iluminação.</p>
       <div class="hero-cta">
         <a href="#produtos" class="btn-solid">Ver produtos <i class="fa-solid fa-arrow-right"></i></a>
@@ -303,14 +304,29 @@
     <div class="hero-art" data-hero-art><figure class="skel" data-skeleton></figure><figure class="skel" data-skeleton></figure><figure class="skel" data-skeleton></figure></div>
   </div></section>
 
+  <section class="v2-strip"><div class="wrap"><ul>
+    <li><i class="fa-brands fa-whatsapp"></i><span><b>Orçamento pelo WhatsApp</b>Monte a lista e envie em um clique</span></li>
+    <li><i class="fa-regular fa-file-lines"></i><span><b>Ficha técnica completa</b>Fotos e detalhes de cada peça</span></li>
+    <li><i class="fa-solid fa-shield-halved"></i><span><b>Garantia dos fabricantes</b>Produtos de marcas selecionadas</span></li>
+    <li><i class="fa-regular fa-lightbulb"></i><span><b>Atendimento consultivo</b>Ajuda para escolher a luz certa</span></li>
+  </ul></div></section>
+  <section class="v2-steps wrap" data-reveal>
+    <div class="sec-h"><div><span class="eyebrow">Como funciona</span><h2>Do catálogo ao orçamento em 3 passos</h2></div></div>
+    <ol>
+      <li><b>Escolha no catálogo</b><span>Navegue pelas categorias ou busque pelo código, nome, potência ou temperatura.</span></li>
+      <li><b>Monte o seu orçamento</b><span>Adicione os itens com cor, temperatura e quantidade. Tudo fica salvo no seu aparelho.</span></li>
+      <li><b>Envie pelo WhatsApp</b><span>Nossa especialista confirma estoque, prazo de entrega e as melhores condições.</span></li>
+    </ol>
+  </section>
+
   <main>
-    <section class="sec wrap">
+    <section class="sec wrap" data-reveal>
       <div class="sec-h"><div><h2>Explore por categoria</h2><p>Toque em uma categoria para ver os produtos.</p></div>
         <div class="arrows"><button onclick="slide('cats',-1)" aria-label="Anteriores"><i class="fa-solid fa-chevron-left"></i></button><button onclick="slide('cats',1)" aria-label="Próximas"><i class="fa-solid fa-chevron-right"></i></button></div></div>
       <nav class="circles" id="cats" data-cats="circle" data-drag aria-label="Categorias"></nav>
     </section>
 
-    <section class="sec wrap">
+    <section class="sec wrap" data-reveal>
       <div class="sec-h"><div><h2>Novidades do catálogo</h2><p>Os últimos produtos que chegaram.</p></div>
         <div class="arrows"><button onclick="slide('novos',-1)" aria-label="Anteriores"><i class="fa-solid fa-chevron-left"></i></button><button onclick="slide('novos',1)" aria-label="Próximos"><i class="fa-solid fa-chevron-right"></i></button></div></div>
       <div class="rail" id="novos"><div class="skel" data-skeleton style="height:380px"></div><div class="skel" data-skeleton style="height:380px"></div></div>
@@ -327,28 +343,45 @@
           <div class="tools">
             <button class="fbtn" onclick="document.body.classList.add('filters-open')"><i class="fa-solid fa-sliders"></i> Filtros <em data-fcount></em></button>
             <select data-sort aria-label="Ordenar"><option value="default">Mais relevantes</option><option value="new">Lançamentos</option><option value="priceAsc">Menor preço</option><option value="priceDesc">Maior preço</option><option value="name">Nome A–Z</option></select>
+            <label class="per"><span>Mostrar</span><select data-per aria-label="Produtos por página"><option value="50">50</option><option value="100">100</option><option value="150">150</option><option value="all">Todos</option></select></label>
             <div class="view"><button class="is-on" data-view="grid" aria-label="Ver em blocos" title="Blocos"><i class="fa-solid fa-grip"></i></button><button data-view="list" aria-label="Ver em lista" title="Lista"><i class="fa-solid fa-list"></i></button></div>
           </div>
         </div>
         <div data-applied hidden></div>
         <div class="grid" data-grid><div class="skel" data-skeleton style="height:400px"></div><div class="skel" data-skeleton style="height:400px"></div><div class="skel" data-skeleton style="height:400px"></div></div>
         <div class="empty" data-empty hidden><h3>Nenhum produto encontrado</h3><p>Revise os filtros ou busque pelo código.</p><button data-reset>Limpar filtros</button></div>
+        <nav class="pager" data-pager hidden aria-label="Páginas"></nav>
         <div class="more" data-more hidden><button data-more-btn>Carregar mais produtos</button></div>
       </section>
     </div>
   </main>
 
-  <section class="band"><div class="wrap band-in">
-    <div><span class="eyebrow">Atendimento</span><h3>Fale com nossa especialista</h3><p>Montou a lista? Envie o orçamento pelo WhatsApp e receba disponibilidade, prazos e condições para lojistas, arquitetos e consumidores.</p>
+
+  <section class="sec wrap v2-reels" data-reveal>
+    <div class="sec-h"><div><span class="eyebrow">Luz em movimento</span><h2>Veja os produtos em vídeo</h2><p>Os vídeos do nosso Instagram, direto no catálogo.</p></div>
+      <div class="arrows"><button onclick="slide('reels',-1)" aria-label="Anteriores"><i class="fa-solid fa-chevron-left"></i></button><button onclick="slide('reels',1)" aria-label="Próximos"><i class="fa-solid fa-chevron-right"></i></button></div></div>
+    <div class="rail" id="reels"><a class="v2-reel" href="https://www.instagram.com/lumifa.br/" target="_blank" rel="noopener"><video muted loop playsinline preload="none" poster="assets/img/reel-reel-01-pendentes.jpg" data-src="instagram/reels/reel-01-pendentes.mp4"></video><span><i class="fa-brands fa-instagram"></i> Pendentes</span></a><a class="v2-reel" href="https://www.instagram.com/lumifa.br/" target="_blank" rel="noopener"><video muted loop playsinline preload="none" poster="assets/img/reel-r04-10-21h00-arandelas-joia.jpg" data-src="instagram/reels/semana-01/r04-10-21h00-arandelas-joia.mp4"></video><span><i class="fa-brands fa-instagram"></i> Arandelas</span></a><a class="v2-reel" href="https://www.instagram.com/lumifa.br/" target="_blank" rel="noopener"><video muted loop playsinline preload="none" poster="assets/img/reel-r07-11-21h00-lustres.jpg" data-src="instagram/reels/semana-01/r07-11-21h00-lustres.mp4"></video><span><i class="fa-brands fa-instagram"></i> Lustres</span></a><a class="v2-reel" href="https://www.instagram.com/lumifa.br/" target="_blank" rel="noopener"><video muted loop playsinline preload="none" poster="assets/img/reel-r10-12-21h00-plafons-arte.jpg" data-src="instagram/reels/semana-01/r10-12-21h00-plafons-arte.mp4"></video><span><i class="fa-brands fa-instagram"></i> Plafons</span></a><a class="v2-reel" href="https://www.instagram.com/lumifa.br/" target="_blank" rel="noopener"><video muted loop playsinline preload="none" poster="assets/img/reel-r13-13-21h00-pendentes-design.jpg" data-src="instagram/reels/semana-01/r13-13-21h00-pendentes-design.mp4"></video><span><i class="fa-brands fa-instagram"></i> Pendentes de design</span></a><a class="v2-reel" href="https://www.instagram.com/lumifa.br/" target="_blank" rel="noopener"><video muted loop playsinline preload="none" poster="assets/img/reel-r16-14-21h00-luminarias-mesa.jpg" data-src="instagram/reels/semana-01/r16-14-21h00-luminarias-mesa.mp4"></video><span><i class="fa-brands fa-instagram"></i> Luminárias de mesa</span></a></div>
+  </section>
+
+  <section class="band" data-reveal><div class="wrap band-in">
+    <div><span class="eyebrow">Atendimento</span><h3>Fale com nossa especialista</h3><p>Montou a lista? Envie o orçamento pelo WhatsApp e receba disponibilidade, prazos e condições de pagamento.</p>
       <a href="https://wa.me/5511959781849?text=Ol%C3%A1!%20Vim%20pelo%20cat%C3%A1logo%20da%20LumiFa%20e%20gostaria%20de%20falar%20com%20uma%20especialista." target="_blank" rel="noopener" class="btn-solid"><i class="fa-brands fa-whatsapp"></i> Chamar no WhatsApp</a>
       <a href="https://www.instagram.com/lumifa.br/" target="_blank" rel="noopener" class="btn-out" style="margin:10px 0 0 10px"><i class="fa-brands fa-instagram" style="color:#96701A"></i> Siga @lumifa.br</a></div>
-    <ul><li><i class="fa-solid fa-clipboard-check"></i>Orçamento sem compromisso, em poucos cliques</li><li><i class="fa-solid fa-store"></i>Condições especiais para lojistas</li><li><i class="fa-solid fa-shield-halved"></i>Produtos com garantia dos fabricantes</li></ul>
+    <ul><li><i class="fa-solid fa-clipboard-check"></i>Orçamento sem compromisso, em poucos cliques</li><li><i class="fa-regular fa-file-lines"></i>Fotos e ficha técnica de cada produto</li><li><i class="fa-solid fa-shield-halved"></i>Produtos com garantia dos fabricantes</li></ul>
   </div></section>
-  <footer><div class="wrap frow"><a href="./" class="brand" data-brand data-dark></a><a class="ig-foot" href="https://www.instagram.com/lumifa.br/" target="_blank" rel="noopener"><i class="fa-brands fa-instagram"></i> Siga no Instagram: @lumifa.br</a><span>© <span data-year></span> LumiFa Iluminação · (11) 95978-1849 · Imagens meramente ilustrativas.</span></div></footer>
+  <footer class="v2-foot"><div class="wrap">
+    <div class="fgrid">
+      <div><a href="./" class="brand" data-brand data-dark></a><p>Catálogo de iluminação decorativa e LED. Escolha, monte seu orçamento e fale com nossa especialista.</p></div>
+      <div><h4>Categorias</h4><button class="lk" data-set-cat="Pendentes">Pendentes</button><button class="lk" data-set-cat="Lustres">Lustres</button><button class="lk" data-set-cat="Arandelas">Arandelas</button><button class="lk" data-set-cat="Painéis de LED">Painéis de LED</button><button class="lk" data-set-cat="Spots">Spots</button></div>
+      <div><h4>Atendimento</h4><a href="https://wa.me/5511959781849?text=Ol%C3%A1!%20Vim%20pelo%20cat%C3%A1logo%20da%20LumiFa." target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i> (11) 95978-1849</a><a href="https://www.instagram.com/lumifa.br/" target="_blank" rel="noopener"><i class="fa-brands fa-instagram"></i> @lumifa.br</a></div>
+      <div><h4>Catálogo</h4><button class="lk" data-open-cart>Meu orçamento</button><button class="lk" data-reset>Todos os produtos</button><button class="lk" data-scroll-top>Voltar ao topo</button></div>
+    </div>
+    <div class="fbase"><span>© <span data-year></span> LumiFa Iluminação. Imagens meramente ilustrativas.</span><span>Valores sujeitos a confirmação de estoque e condições comerciais.</span></div>
+  </div></footer>
   <a class="wa-fab" href="https://wa.me/5511959781849?text=Ol%C3%A1!%20Vim%20pelo%20cat%C3%A1logo%20da%20LumiFa." target="_blank" rel="noopener" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-<script src="assets/motor.js?v=20261106b"></script>
+<script src="assets/motor.js?v=20261110a"></script>
 <script>
 function closeFilters() { document.body.classList.remove('filters-open'); }
 // fecha os filtros clicando fora do painel ou apertando Esc
@@ -387,13 +420,13 @@ const card = (it, H) => {
       <div class="cprice">${H.from(it) ? '<small>a partir de</small>' : ''}<b>${H.priceLabel(it.price)}</b>${it.price > 0 ? '<small>un.</small>' : ''}</div>
       <div class="buy">${it.isGroup
         ? `<button class="addbtn alt" data-open="${H.esc(it.code)}"><i class="fa-solid fa-swatchbook"></i> Escolher opção</button>`
-        : `<div class="stepper"><button type="button" onclick="this.nextElementSibling.value=Math.max(1,+this.nextElementSibling.value-1)">−</button><input type="number" min="1" value="1" aria-label="Quantidade"><button type="button" onclick="this.previousElementSibling.value=+this.previousElementSibling.value+1">+</button></div><button class="addbtn" data-qty-add="${H.esc(it.code)}"><i class="fa-solid fa-plus"></i> Orçar</button>`}
+        : `<div class="stepper"><button type="button" onclick="this.nextElementSibling.value=Math.max(1,+this.nextElementSibling.value-1)">−</button><input type="number" min="1" value="1" aria-label="Quantidade"><button type="button" onclick="this.previousElementSibling.value=+this.previousElementSibling.value+1">+</button></div><button class="addbtn" data-qty-add="${H.esc(it.code)}">Cotar</button>`}
       </div>
     </div>
   </article>`;
 };
 Motor.init({
-  id: 'site', root: './', demo: false, logo: 'lumifa', theme: 'auto', brandName: 'LumiFa Iluminação',
+  id: 'site', root: './', paged: true, demo: false, logo: 'lumifa', theme: 'auto', brandName: 'LumiFa Iluminação',
   headerOffset: () => document.querySelector('header.main').offsetHeight + 12,
   scrollOnCat: 'always', scrollAnchor: '#produtos',
   catTemplates: {
@@ -471,5 +504,6 @@ Motor.init({
   }
 });
 </script>
+<script src="assets/galeria.js?v=4"></script>
 </body>
 </html>

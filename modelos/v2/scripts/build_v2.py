@@ -2,7 +2,8 @@
 Rodar de novo sempre que o index mudar: python3 build_v2.py"""
 import re, pathlib
 SITE = pathlib.Path(__file__).resolve().parents[3]
-src = (SITE / 'index.html').read_text()
+# base = index Ateliê de 10/11/2026 (o index.html agora é gerado por este script)
+src = (SITE / 'modelos/v2/scripts/base-atelie.html').read_text()
 WA = 'https://wa.me/5511959781849?text='
 
 STRIP = '''
@@ -43,7 +44,7 @@ REELS = '''
     <div class="sec-h"><div><span class="eyebrow">Luz em movimento</span><h2>Veja os produtos em vídeo</h2><p>Os vídeos do nosso Instagram, direto no catálogo.</p></div>
       <div class="arrows"><button onclick="slide('reels',-1)" aria-label="Anteriores"><i class="fa-solid fa-chevron-left"></i></button><button onclick="slide('reels',1)" aria-label="Próximos"><i class="fa-solid fa-chevron-right"></i></button></div></div>
     <div class="rail" id="reels">''' + ''.join(
-    f'<a class="v2-reel" href="https://www.instagram.com/lumifa.br/" target="_blank" rel="noopener"><video muted loop playsinline preload="none" poster="img/reel-{r.split("/")[-1]}.jpg" data-src="../../instagram/reels/{r}.mp4"></video><span><i class="fa-brands fa-instagram"></i> {n}</span></a>'
+    f'<a class="v2-reel" href="https://www.instagram.com/lumifa.br/" target="_blank" rel="noopener"><video muted loop playsinline preload="none" poster="{{P}}assets/img/reel-{r.split("/")[-1]}.jpg" data-src="{{P}}instagram/reels/{r}.mp4"></video><span><i class="fa-brands fa-instagram"></i> {n}</span></a>'
     for r, n in REELS_LIST) + '''</div>
   </section>'''
 
@@ -60,7 +61,7 @@ FOOT = f'''<footer class="v2-foot"><div class="wrap">
 MODELS = {
     'a': dict(file='a-cinema.html', nome='Cinema',
               h1='A luz certa para <em>cada projeto</em>',
-              hero_top='<video muted loop playsinline autoplay preload="auto" poster="img/hero-wide.jpg" data-wide="img/hero-wide.mp4" data-tall="img/hero-tall.mp4" aria-hidden="true"></video><button class="v2-vctl" type="button" aria-label="Pausar vídeo"><i class="fa-solid fa-pause"></i></button><a class="v2-scroll" href="#produtos">Role</a>',
+              hero_top='<video muted loop playsinline autoplay preload="auto" poster="{P}assets/img/hero-wide.jpg" data-wide="{P}assets/img/hero-wide.mp4" data-tall="{P}assets/img/hero-tall.mp4" aria-hidden="true"></video><button class="v2-vctl" type="button" aria-label="Pausar vídeo"><i class="fa-solid fa-pause"></i></button><a class="v2-scroll" href="#produtos">Role</a>',
               after_hero=STRIP, before_band=STEPS + LOJISTA),
     'b': dict(file='b-galeria.html', nome='Galeria',
               h1='Iluminação com <em>olhar de ateliê</em>',
@@ -70,14 +71,16 @@ MODELS = {
               hero_top='', after_hero=STRIP, before_band=STEPS + REELS),
 }
 
-def build(k, m):
+def build(k, m, live=False):
+    P = '' if live else '../../'
     h = src
     h = h.replace('<html lang="pt-BR" data-skin="atelie">', f'<html lang="pt-BR" data-skin="atelie" data-modelo="{k}">')
-    h = re.sub(r'<title>.*?</title>', f'<title>Modelo {k.upper()} · {m["nome"]} (prévia) | LumiFa Iluminação</title>\n  <meta name="robots" content="noindex">', h, count=1)
-    h = h.replace('href="imagens/', 'href="../../imagens/')
-    h = re.sub(r'(href|src)="assets/', r'\1="../../assets/', h)
-    h = h.replace('</style>\n<script>', '</style>\n<link rel="stylesheet" href="v2.css?v=3">\n<script>', 1)
-    h = h.replace('<a href="./" class="brand"', f'<a href="{m["file"]}" class="brand"')
+    if not live:
+        h = re.sub(r'<title>.*?</title>', f'<title>Modelo {k.upper()} · {m["nome"]} (prévia) | LumiFa Iluminação</title>\n  <meta name="robots" content="noindex">', h, count=1)
+        h = h.replace('href="imagens/', 'href="../../imagens/')
+        h = re.sub(r'(href|src)="assets/', r'\1="../../assets/', h)
+    h = h.replace('</style>\n<script>', f'</style>\n<link rel="stylesheet" href="{P}assets/galeria.css?v=4">\n<script>', 1)
+    h = h.replace('<a href="./" class="brand"', f'<a href="{"./" if live else m["file"]}" class="brand"')
     # capa
     h = h.replace('<section class="hero"><div class="wrap hero-in">', f'<section class="hero">{m["hero_top"]}<div class="wrap hero-in">', 1)
     h = re.sub(r'<h1>.*?</h1>', f'<h1>{m["h1"]}</h1>', h, count=1)
@@ -87,20 +90,24 @@ def build(k, m):
     # blocos novos antes da faixa de atendimento
     h = h.replace('  <section class="band">', m['before_band'] + '\n\n  <section class="band" data-reveal>', 1)
     # rodapé novo
-    h = re.sub(r'<footer>.*?</footer>', FOOT.replace('{self}', m['file']), h, count=1, flags=re.S)
+    h = re.sub(r'<footer>.*?</footer>', FOOT.replace('{self}', './' if live else m['file']), h, count=1, flags=re.S)
     h = re.sub(r'motor\.js\?v=\w+', 'motor.js?v=20261110a', h)
     # sem programa para lojistas
     h = h.replace('<li><i class="fa-solid fa-store"></i>Condições especiais para lojistas</li>', '<li><i class="fa-regular fa-file-lines"></i>Fotos e ficha técnica de cada produto</li>')
     h = h.replace('prazos e condições para lojistas, arquitetos e consumidores', 'prazos e condições de pagamento')
-    h = h.replace("root: './'", "root: '../../', paged: true")
+    h = h.replace("root: './'", f"root: '{P or './'}', paged: true")
     # botão do card: "Cotar"
     h = h.replace('<i class="fa-solid fa-plus"></i> Orçar</button>', 'Cotar</button>')
     # produtos por página + paginação
     h = h.replace('<div class="view">', '<label class="per"><span>Mostrar</span><select data-per aria-label="Produtos por página"><option value="50">50</option><option value="100">100</option><option value="150">150</option><option value="all">Todos</option></select></label>\n            <div class="view">', 1)
     h = h.replace('<div class="more" data-more hidden>', '<nav class="pager" data-pager hidden aria-label="Páginas"></nav>\n        <div class="more" data-more hidden>', 1)
-    h = h.replace('</body>', '<script src="v2.js?v=2"></script>\n</body>')
-    assert 'data-pager' in h and 'Cotar' in h and 'data-per' in h and 'data-hero-art' in h and "root: '../../'" in h and 'v2.js' in h and 'v2-foot' in h, k
-    (SITE / 'modelos/v2' / m['file']).write_text(h)
-    print('ok', m['file'], len(h))
+    h = h.replace('</body>', f'<script src="{P}assets/galeria.js?v=4"></script>\n</body>')
+    assert 'data-pager' in h and 'Cotar' in h and 'data-per' in h and 'data-hero-art' in h and 'galeria.js' in h and 'v2-foot' in h, k
+    h = h.replace('{P}', P)
+    destino = SITE / 'index.html' if live else SITE / 'modelos/v2' / m['file']
+    destino.write_text(h)
+    print('ok', destino.name, len(h))
 
 for k, m in MODELS.items(): build(k, m)
+# site principal = Galeria
+build('b', MODELS['b'], live=True)
