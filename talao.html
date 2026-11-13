@@ -751,14 +751,19 @@
     }
 
     function carregarCatalogo() {
+      const corrP = fetch('correcoes.json?t=' + Date.now()).then(r => r.ok ? r.json() : {}).catch(() => ({}));
       Papa.parse(GOOGLE_SHEETS_CSV_URL + '&t=' + Date.now(), {
         download: true, header: true, skipEmptyLines: true,
-        complete: r => {
+        complete: r => corrP.then(corr => {
           produtos = (r.data || []).map(row => {
             const it = {};
             for (const k in row) it[k.trim().toLowerCase()] = row[k] ? String(row[k]).trim() : '';
             const code = (it.codigo || it['código'] || '').toUpperCase();
             if (!code) return null;
+            // correções de português (correcoes.json), só enquanto a planilha tem o valor antigo
+            const c = (corr || {})[code];
+            if (c) Object.keys(c).forEach(k => { const [a, d] = c[k]; const cur = String(it[k] || '').trim();
+              if (k === 'status' ? !/arquiv/i.test(cur) && /arquiv/i.test(d) : cur === String(a).trim()) it[k] = d; });
             const p = { code, nome: it.nome || code, cat: it.categoria || '', preco: num(it.preco || it['preço']), img: it.imagem || '', arq: /arquiv/i.test(it.status || '') };
             p.busca = norm([p.code, p.nome, p.cat].join(' '));
             return p;
@@ -769,7 +774,7 @@
           $('buscaInput').disabled = false;
           if (equipe) aplicarEquipeBusca();
           renderItens();
-        },
+        }),
         error: () => {
           $('statusCatalogo').textContent = '· catálogo indisponível (dá para digitar à mão)';
           $('buscaInput').disabled = true;

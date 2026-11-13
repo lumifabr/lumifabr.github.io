@@ -152,21 +152,67 @@
     const varP = fetch(CFG.root + 'variacoes.json?t=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null);
     // fotos extras por produto (galeria/): {"PROD-001": ["3","4"]} — gerado automaticamente
     fetch(CFG.root + 'fotos.json?t=' + Date.now()).then(r => r.ok ? r.json() : {}).then(j => { S.fotos = j || {}; }).catch(() => {});
+    // correções de português / ajustes à mão: {"PROD-x": {"campo": [valor antigo da planilha, valor certo]}}
+    const corrP = fetch(CFG.root + 'correcoes.json?t=' + Date.now()).then(r => r.ok ? r.json() : {}).catch(() => ({}));
     Papa.parse(csvUrl + (csvUrl.includes('?') ? '&' : '?') + 't=' + Date.now(), {
       download: true, header: true, skipEmptyLines: true,
-      complete: res => {
+      complete: res => corrP.then(corr => {
+        S.corrPend = {};
         S.products = (res.data || []).map((row, idx) => {
           const it = {};
           for (const k in row) it[k.trim().toLowerCase()] = row[k] ? String(row[k]).trim() : '';
+          applyCorr(it, corr || {});
           return makeProduct(it, idx);
         });
         S.products.forEach(p => S.byCode.set(p.code, p));
         applyPending();
         if (!S.products.length) return fail('Catálogo vazio', 'Não encontramos produtos na planilha.');
-        varP.then(v => { S.varData = v; buildItems(v); loadCart(); ready(); });
-      },
+        varP.then(v => { S.varData = v; buildItems(v); loadCart(); ready(); updCorrPill(); });
+      }),
       error: () => fail('Não foi possível carregar o catálogo', 'Verifique sua conexão e tente novamente.')
     });
+  }
+
+  // aplica a correção só enquanto a planilha ainda tem o valor antigo (se alguém editar depois, vale a planilha)
+  function applyCorr(it, corr) {
+    const code = String(it.codigo || it['código'] || '').toUpperCase(), c = corr[code];
+    if (!c) return;
+    const pend = {};
+    Object.keys(c).forEach(k => {
+      const [antes, depois] = c[k], atual = String(it[k] || '').trim();
+      const ok = k === 'status' ? !/arquiv/i.test(atual) && /arquiv/i.test(depois) : atual === String(antes).trim();
+      if (ok) { it[k] = depois; pend[k] = depois; }
+    });
+    if (Object.keys(pend).length) S.corrPend[code] = pend;
+  }
+  // modo equipe: grava na planilha as correções que ainda só existem no site (correcoes.json)
+  async function syncCorr() {
+    const all = Object.entries(S.corrPend || {});
+    if (!S.team || !all.length) return toast('Nada pendente: a planilha já está corrigida');
+    if (!confirm(`Gravar ${all.length} correções de anúncios na planilha?\n\nLeva alguns minutos; deixe esta aba aberta até terminar.`)) return;
+    if (!editorUrl(true)) return;
+    let ok = 0, err = 0, i = 0;
+    const btn = $('[data-corr-n]');
+    const one = async ([code, ch]) => {
+      const { status, ...dados } = ch;
+      try {
+        if (Object.keys(dados).length) await api('editar', [code], dados);
+        if (status) await api('arquivar', [code]);
+        delete S.corrPend[code]; ok++;
+      } catch (e) { err++; }
+      if (btn) btn.textContent = Object.keys(S.corrPend).length;
+    };
+    document.body.classList.add('ed-busy');
+    const worker = async () => { while (i < all.length) { const x = all[i++]; await one(x); if ((ok + err) % 25 === 0) toast(`Gravando correções… ${ok + err}/${all.length}`); } };
+    await Promise.all([worker(), worker(), worker()]);
+    document.body.classList.remove('ed-busy');
+    updCorrPill();
+    toast(err ? `${ok} gravadas, ${err} com erro (tente de novo)` : `Pronto: ${ok} correções gravadas na planilha`);
+  }
+  function updCorrPill() {
+    const n = Object.keys(S.corrPend || {}).length;
+    $$('[data-corr]').forEach(b => b.hidden = !n);
+    $$('[data-corr-n]').forEach(b => b.textContent = n);
   }
 
   // monta um produto a partir de uma linha da planilha (chaves em minúsculas)
@@ -637,6 +683,7 @@
       S.products.forEach(p => { const t = map[p.code]; p.team = t ? { partner: t[0], orig: t[1], page: t[2], table: t[3] } : null; p.teamHay = p.team ? norm(p.team.orig + ' ' + p.team.partner) : ''; });
       S.groups.forEach(g => g.teamHay = g.variants.map(v => v.teamHay).join(' '));
       document.body.classList.add('is-team');
+      updCorrPill();
       if (!silent) toast('Modo equipe ativado');
       render();
     } catch (e) { store.del(CFG.teamKey); if (!silent) toast('Senha incorreta'); }
@@ -854,7 +901,7 @@
       <button id="m-top" data-scroll-top aria-label="Voltar ao topo" title="Voltar ao topo"><i class="fa-solid fa-arrow-up"></i></button>
       <div id="m-toast"><i class="fa-solid fa-circle-check"></i><span></span></div>
       <div class="m-layer m-edit-layer" id="m-edit" onclick="if(event.target===this)Motor.close('#m-edit')"><div class="e-panel"><button class="m-x" onclick="Motor.close('#m-edit')" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button><div class="e-body"></div></div></div>
-      <div class="team-pill"><i class="fa-solid fa-user-lock"></i> Modo equipe <button type="button" class="tp-arch" data-arch-view title="Ver produtos arquivados"><i class="fa-solid fa-box-archive"></i> <span class="tp-l1">Arquivados</span><span class="tp-l2">Voltar ao catálogo</span> <b data-arch-n>0</b></button><a href="${CFG.root}talao.html">Talão</a><button type="button" onclick="Motor.configEditor()" title="Link do editor de anúncios"><i class="fa-solid fa-gear"></i></button><button onclick="Motor.teamLogout()">Sair</button></div>`);
+      <div class="team-pill"><i class="fa-solid fa-user-lock"></i> Modo equipe <button type="button" class="tp-arch" data-arch-view title="Ver produtos arquivados"><i class="fa-solid fa-box-archive"></i> <span class="tp-l1">Arquivados</span><span class="tp-l2">Voltar ao catálogo</span> <b data-arch-n>0</b></button><button type="button" data-corr hidden onclick="Motor.syncCorr()" title="Gravar na planilha as correções de português que estão só no site"><i class="fa-solid fa-spell-check"></i> Correções <b data-corr-n>0</b></button><a href="${CFG.root}talao.html">Talão</a><button type="button" onclick="Motor.configEditor()" title="Link do editor de anúncios"><i class="fa-solid fa-gear"></i></button><button onclick="Motor.teamLogout()">Sair</button></div>`);
   }
 
   // Barra de apresentação: trocar de modelo e de logo (só nesta prévia)
@@ -991,7 +1038,7 @@
     },
     page: goPage, perPage: setPer,
     open: openProduct, pick, step, zoom, go, gDrop, close, add, setQty, clearCart, sendWhatsApp, teamLogout, setCat, reset, render,
-    edit: openEditor, saveEdit, configEditor, archive: c => setArchived([].concat(c), true), unarchive: c => setArchived([].concat(c), false), archView: toggleArchView,
+    edit: openEditor, saveEdit, configEditor, archive: c => setArchived([].concat(c), true), unarchive: c => setArchived([].concat(c), false), archView: toggleArchView, syncCorr,
     get state() { return S; }, H, CFG, filtered, categories,
     // listas prontas para vitrines/carrosséis
     featured(n) { return S.items.filter(i => i.featured).sort((a, b) => a.rank - b.rank).slice(0, n || 12).map(view); },

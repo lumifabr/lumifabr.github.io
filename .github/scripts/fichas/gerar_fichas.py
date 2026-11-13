@@ -61,13 +61,24 @@ def ficha(code, name, specs, foto, out, mini):
     m = im.copy(); m.thumbnail((200, 200), Image.LANCZOS); m.save(mini, 'WEBP', quality=80)
 
 gal = os.path.join(ROOT, 'galeria'); os.makedirs(os.path.join(gal, 'mini'), exist_ok=True)
+# correções de português (correcoes.json do site): valem enquanto a planilha tem o valor antigo
+try:
+    import json
+    CORR = json.load(open(os.path.join(ROOT, 'correcoes.json'), encoding='utf-8'))
+except Exception:
+    CORR = {}
+# refazer.txt: códigos cuja ficha deve ser refeita (nome corrigido, foto trocada). Esvaziado depois.
+REF_TXT = os.path.join(AQUI, 'refazer.txt')
+REFAZER = set(open(REF_TXT).read().split()) if os.path.exists(REF_TXT) else set()
 feitas = 0
 with open(CSV, encoding='utf-8') as fh:
     for r in csv.DictReader(fh):
         code = (r.get('codigo') or '').strip().upper()
         if not re.match(r'^PROD-\d+$', code): continue
+        for k, (antes, depois) in CORR.get(code, {}).items():
+            if k in ('nome', 'especificacoes') and (r.get(k) or '').strip() == antes.strip(): r[k] = depois
         out = os.path.join(gal, f'{code}-3.webp')
-        if os.path.exists(out): continue
+        if os.path.exists(out) and code not in REFAZER: continue
         specs = specs_of(r.get('especificacoes'))
         foto = os.path.join(ROOT, 'imagens', f'{code}.jpg')
         if not specs or not os.path.exists(foto): continue
@@ -76,3 +87,4 @@ with open(CSV, encoding='utf-8') as fh:
         except Exception as e:
             print('erro', code, e)
 print(feitas, 'fichas novas')
+if REFAZER: open(REF_TXT, 'w').write('')
