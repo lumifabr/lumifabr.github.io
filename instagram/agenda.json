@@ -197,7 +197,8 @@
   "hora": "08:30",
   "tipo": "story",
   "imagem": "https://www.lumifa.com.br/instagram/stories/banco/dica-9h00-arandelas-onde-instalar-2.jpg",
-  "status": "programado"
+  "status": "publicado",
+    "media_id": "18074474624751327"
  },
  {
   "data": "2026-11-13",
