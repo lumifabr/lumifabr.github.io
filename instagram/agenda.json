@@ -319,7 +319,8 @@
   "hora": "08:30",
   "tipo": "story",
   "imagem": "https://www.lumifa.com.br/instagram/stories/banco/dica-9h30-erros-de-iluminacao-2.jpg",
-  "status": "programado"
+  "status": "publicado",
+    "media_id": "18123025549746602"
  },
  {
   "data": "2026-11-15",
