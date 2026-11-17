@@ -451,7 +451,8 @@
   "hora": "10:30",
   "tipo": "story",
   "imagem": "https://www.lumifa.com.br/instagram/stories/banco/produto-luminarias-mesa-3.jpg",
-  "status": "programado"
+  "status": "publicado",
+  "media_id": "18133814302813624"
  },
  {
   "data": "2026-11-17",
