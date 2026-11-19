@@ -562,7 +562,8 @@
   "hora": "08:30",
   "tipo": "story",
   "imagem": "https://www.lumifa.com.br/instagram/stories/banco/dica-9h30-fachada-a-noite-3.jpg",
-  "status": "programado"
+  "status": "publicado",
+    "media_id": "18023277536732592"
  },
  {
   "data": "2026-11-19",
