@@ -624,7 +624,8 @@
   "hora": "08:30",
   "tipo": "story",
   "imagem": "https://www.lumifa.com.br/instagram/stories/banco/dica-dica-cozinha-1.jpg",
-  "status": "programado"
+  "status": "publicado",
+  "media_id": "18128787121914160"
  },
  {
   "data": "2026-11-20",
