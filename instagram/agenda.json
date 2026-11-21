@@ -707,7 +707,8 @@
     "hora": "15:30",
     "tipo": "story",
     "imagem": "https://www.lumifa.com.br/instagram/stories/banco/produto-spots-3.jpg",
-    "status": "programado"
+    "status": "publicado",
+    "media_id": "18149650963569554"
   },
   {
     "data": "2026-11-21",
