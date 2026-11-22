@@ -763,7 +763,8 @@
     "hora": "12:30",
     "tipo": "story",
     "imagem": "https://www.lumifa.com.br/instagram/stories/banco/dica-dica-home-office-3.jpg",
-    "status": "programado"
+    "status": "publicado",
+    "media_id": "18653213620052264"
   },
   {
     "data": "2026-11-22",
