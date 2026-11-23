@@ -806,7 +806,8 @@
     "hora": "08:30",
     "tipo": "story",
     "imagem": "https://www.lumifa.com.br/instagram/stories/banco/dica-dica-varanda-1.jpg",
-    "status": "programado"
+    "status": "publicado",
+    "media_id": "17979508529934124"
   },
   {
     "data": "2026-11-23",
