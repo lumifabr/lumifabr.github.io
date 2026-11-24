@@ -893,7 +893,8 @@
     "hora": "15:30",
     "tipo": "story",
     "imagem": "https://www.lumifa.com.br/instagram/stories/banco/produto-PROD-3753.jpg",
-    "status": "programado"
+    "status": "publicado",
+    "media_id": "18134261035766416"
   },
   {
     "data": "2026-11-24",
