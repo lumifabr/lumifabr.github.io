@@ -944,7 +944,8 @@
     "hora": "12:30",
     "tipo": "story",
     "imagem": "https://www.lumifa.com.br/instagram/stories/banco/dica-dica-vitrine-3.jpg",
-    "status": "programado"
+    "status": "publicado",
+    "media_id": "18426013561157950"
   },
   {
     "data": "2026-11-25",
