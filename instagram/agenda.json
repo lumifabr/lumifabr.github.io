@@ -1051,7 +1051,8 @@
     "hora": "08:30",
     "tipo": "story",
     "imagem": "https://www.lumifa.com.br/instagram/stories/banco/dica-grau-ip.jpg",
-    "status": "programado"
+    "status": "publicado",
+    "media_id": "18072753869609189"
   },
   {
     "data": "2026-11-27",
