@@ -1092,7 +1092,8 @@
     "hora": "21:30",
     "tipo": "story",
     "imagem": "https://www.lumifa.com.br/instagram/stories/banco/cta-3.jpg",
-    "status": "programado"
+    "status": "publicado",
+    "media_id": "18105861806376634"
   },
   {
     "data": "2026-11-28",
